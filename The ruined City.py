@@ -785,7 +785,147 @@ def I(): # сама игра
              Enemy("Мега-Рыцарь", Ec[2][0], Ec[2][1], hp=1000, t='3'),
              Enemy("Мега-Рыцарь", Ec[3][0], Ec[3][1], hp=1000, t='4')
              ]
+
         X_BOSS, Y_BOSS = Ec[0][0], Ec[0][1]
+
+        return 'БОСС'
+
+    if Game == -12 and (KILL_KNIGHT >= 5): # 0 - поставил временно, по хорошему ставить 10 (или 5 если 10 - слишком сложно)
+        Energy += 100 # чтоб легче жилось и босс легче проходился
+        hp += 1
+        HP_BOSS = 1000
+        PHASE_BOSS = 0
+        Game = BOSS_LEVEL_2 # потом поставить 6.5, 7 - временно для тестов
+        Ec = [[1, 1], [1, 2], [2, 1], [2, 2]]
+
+        in_water = True
+        n = -1
+        while in_water != False:
+            in_water = False
+            n = -1
+            for coords in Ec:
+                n += 1
+                x, y = coords[0], coords[1]
+
+                if Type[x * Y + y] != 'Вода':
+                    in_water = True
+            n = -1
+            for coords in Ec:
+                n += 1
+                if in_water:
+                    Ec[n][0] += 1
+
+                    if Ec[n][0] >= X:
+                        Ec[n][0] = 0
+                        Ec[n][1] += 1
+
+
+        E = [Enemy("Гидра", Ec[0][0], Ec[0][1], hp=1000, t='1'),
+             Enemy("Гидра", Ec[1][0], Ec[1][1], hp=1000, t='2'),
+             Enemy("Гидра", Ec[2][0], Ec[2][1], hp=1000, t='3'),
+             Enemy("Гидра", Ec[3][0], Ec[3][1], hp=1000, t='4')
+             ]
+
+        X_BOSS, Y_BOSS = Ec[0][0], Ec[0][1]
+
+        return 'БОСС'
+
+    for i in E:
+        if i.T == 'Мега-Рыцарь':
+            pass # для тестов, Мега-Рыцарь есть, но не отображается
+    if int(hp) <= 0:
+
+        for i in END:
+            canvas.itemconfig(i, state='normal')
+        canvas.itemconfig(END[1], text='Вы погибли...\nНажмите пробел чтобы выйти в главное меню')
+        if keys_pressed[' ']:
+            play_menu_music()
+            Game = 1
+            for i in lvls:
+                i.Show()
+
+                Objects[X * Y + 18].Hide()
+
+                i.Restart()
+            canvas.itemconfig(Rectangles, state='normal')
+            canvas.config(bg='#001000')
+            for i in Objects:
+                canvas.itemconfig(i, state='hidden')
+            for i in END:
+                canvas.itemconfig(i, state='hidden')
+            canvas.itemconfig(Sword, state='hidden')
+
+        return 'Выход из ф-я'
+
+    if         (t.time() - TIME_START_GAME >= 120 and Game == -1) \
+            or (t.time() - TIME_START_GAME >= 150 and Game == -2) \
+            or (t.time() - TIME_START_GAME >= 180 and Game == -3) \
+            or (KILL_KNIGHT >= 10 and Game == -4) \
+            or (KILL_KNIGHT >= 10 and Game == -5) \
+            or (HP_BOSS <= 0 and Game == BOSS_LEVEL) \
+            or (t.time() - TIME_START_GAME >= 140 and Game == -7) \
+            or (t.time() - TIME_START_GAME >= 150 and Game == -8) \
+            or (KILL_KNIGHT >= 10 and Game == -9) \
+            or (t.time() - TIME_START_GAME >= 100 and Game == -10) \
+            or (t.time() - TIME_START_GAME >= 180 and Game == -11) \
+            or (HP_BOSS <= 0 and Game == BOSS_LEVEL_2) \
+            :
+
+        for i in END:
+            canvas.itemconfig(i, state='normal')
+        canvas.itemconfig(END[1], text='Вы победили!\n\nНажмите пробел чтобы выйти в главное меню')
+        if keys_pressed[' ']:
+            play_menu_music()
+            Game = 1
+
+            Objects[X * Y + 18].Hide()
+
+            for i in lvls:
+                i.Show()
+                i.Restart()
+            canvas.itemconfig(Rectangles, state='normal')
+            canvas.config(bg='#001000')
+            for i in Objects:
+                canvas.itemconfig(i, state='hidden')
+            for i in END:
+                canvas.itemconfig(i, state='hidden')
+            canvas.itemconfig(Sword, state='hidden')
+
+        return 'Выход из ф-я'
+
+    for i in [Objects[18 + X * Y]]:
+        III = i
+        i.Click(Mx, My, B)
+        i.Open(Mx, My)
+
+        if i.On:
+            if i.name == 'Меню':
+                canvas.itemconfig(END[0], state='normal')
+                canvas.itemconfig(END[1], state='normal', text='Вы в меню.\nНажмите левый шифт, чтобы вернуться в игру. Нажмите пробел, чтобы выйти в главное меню')
+                if keys_pressed[' ']:
+                    play_menu_music()
+                    Game = 1
+
+                    Objects[X * Y + 18].Hide()
+
+                    for i in lvls:
+                        i.Show()
+                        i.Restart()
+                    canvas.itemconfig(Rectangles, state='normal')
+                    canvas.config(bg='#001000')
+                    for i in Objects:
+                        canvas.itemconfig(i, state='hidden')
+                    for i in END:
+                        canvas.itemconfig(i, state='hidden')
+                    canvas.itemconfig(Sword, state='hidden')
+                    III.On = False
+                if keys_pressed['e']:
+                    canvas.itemconfig(END[0], state='hidden')
+                    canvas.itemconfig(END[1], state='hidden',
+                                      text='Вы в меню.\nНажмите левый шифт, чтобы вернуться в игру. Нажмите пробел, чтобы выйти в главное меню')
+                    i.On = False
+            return 'Вообще-то мы в меню'
+
     if Game == BOSS_LEVEL:
 
         # ход босса
@@ -817,12 +957,68 @@ def I(): # сама игра
         if random.randint(1, 25) == 1:
             PHASE_BOSS = 0.1
 
+    if Game == BOSS_LEVEL_2:
+
+        # ход босса
+        if N % 3 == 0:
+            x = X_BOSS
+            y = Y_BOSS
+            # Вычисляем разности координат с учётом заторенного мира
+            dx = (Nx - x + X) % X
+            dy = (Ny - y + Y) % Y
+
+            # Выбираем направление движения (кратчайший путь)
+            if dx > X / 2:
+                dx = dx - X
+
+            if dy > Y / 2:
+                dy = dy - Y
+
+            # Двигаемся в нужном направлении
+            if dx > 0:
+                X_BOSS = (X_BOSS + 1) % X
+            elif dx < 0:
+                X_BOSS = (X_BOSS - 1) % X
+
+            if dy > 0:
+                Y_BOSS = (Y_BOSS + 1) % Y
+            elif dy < 0:
+                Y_BOSS = (Y_BOSS - 1) % Y
+
+        if random.randint(1, 25) == 1:
+            PHASE_BOSS = -0.1
+
     if PHASE_BOSS == 10:
         PHASE_BOSS = 0
 
-    if PHASE_BOSS != 0:
+    if PHASE_BOSS == -10:
+        PHASE_BOSS = 0
+
+    if PHASE_BOSS > 0:
         PHASE_BOSS += 1
         PHASE_BOSS = PHASE_BOSS // 1 # т. е. стать целым
+
+    if PHASE_BOSS < 0:
+        PHASE_BOSS -= 1
+        PHASE_BOSS = int(PHASE_BOSS)# т. е. стать целым
+
+    for e in E:
+        e.Hod = True
+        if e.T == 'Призрак':
+            dx = min(abs(e.x - Nx), X - abs(e.x - Nx))
+            dy = min(abs(e.y - Ny), Y - abs(e.y - Ny))
+            d = (dx ** 2 + dy ** 2) ** 0.5
+
+            if d <= 2:
+                hp -= 0.5
+
+        if e.T == 'Рыцарь':
+            dx = min(abs(e.x - Nx), X - abs(e.x - Nx))
+            dy = min(abs(e.y - Ny), Y - abs(e.y - Ny))
+            d = (dx ** 2 + dy ** 2) ** 0.5
+
+            if d <= 1:
+                hp -= 0.2  # не смотря всего на 0.2 сносит он много
 
         if e.T == 'Мега-Рыцарь':
             dx = min(abs(e.x - Nx), X - abs(e.x - Nx))
@@ -831,6 +1027,7 @@ def I(): # сама игра
 
             if d <= 1:
                 hp -= 1 # для босса нормально, тестил
+
         if e.T == 'Амфибия':
             dx = min(abs(e.x - Nx), X - abs(e.x - Nx))
             dy = min(abs(e.y - Ny), Y - abs(e.y - Ny))
@@ -838,30 +1035,259 @@ def I(): # сама игра
 
             if d <= 1:
                 hp -= 0.2
+
+        if e.T == 'Маг':
+            if e.t == '0':
+                if random.randint(1, 10) == 1:
+                    e.t = 1
+            else:
+                if e.t < 10:
+                    e.t += 1
+                else:
+                    e.t = '0'
+
+        if e.T == 'Гидра':
+            dx = min(abs(e.x - Nx), X - abs(e.x - Nx))
+            dy = min(abs(e.y - Ny), Y - abs(e.y - Ny))
+            d = (dx ** 2 + dy ** 2) ** 0.5
+
+            if d <= 1:
+                hp -= 1
+
+    # Движение игрока с учетом всех нажатых клавиш
+    if not ATTACK:
+        if keys_pressed['w'] or keys_pressed['ц']:  # Вверх
+            if (not ((Type[(Nx * X + Ny - 1) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny - 1) % (X * Y)]) == 'Вода'))):
+                Ny -= 1
+        if keys_pressed['s'] or keys_pressed['ы']:  # Вниз
+            if (not ((Type[(Nx * X + Ny + 1) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny + 1) % (X * Y)]) == 'Вода'))):
+                Ny += 1
+        if keys_pressed['d'] or keys_pressed['в']:  # Вправо
+            if (not ((Type[(Nx * X + Ny + X) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny + X) % (X * Y)]) == 'Вода'))):
+                Nx += 1
+        if keys_pressed['a'] or keys_pressed['ф']:  # Влево
+            if (not ((Type[(Nx * X + Ny - X) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny - X) % (X * Y)]) == 'Вода'))):
+                Nx -= 1
+
+    if ATTACK_P == 9:
+        ATTACK = False
+        ATTACK_P = 0
+        LIST_ATTACK = []
+        TO_ATTACK_SWORD = []
+
+        # Убираем подсветку
+        for i, obj in enumerate(Objects[:X * Y]):
+            canvas.itemconfig(obj, width=1)
+            if Type[i] == 'Земля':
+                canvas.itemconfig(obj, outline='#00ffaa')
+            elif Type[i] == 'Вода':
+                canvas.itemconfig(obj, outline='#00aaff')
+            elif Type[i] == 'Снег':
+                canvas.itemconfig(obj, outline='#eaeaea')
+
+        canvas.itemconfig(Sword, state='hidden')
+
+    if ATTACK:
+        ATTACK_P += 1
+
+        # Центр игрока
+        center_x = Nx * wx + wx / 2
+        center_y = Ny * wx + wx / 2
+
+        # Получаем координаты для текущего кадра атаки
+        if ATTACK_P < len(LIST_ATTACK):
+            line_data = LIST_ATTACK[ATTACK_P]
+
+            # Координаты начала и конца меча
+            start_x = center_x
+            start_y = center_y
+            end_x = center_x + line_data[2]
+            end_y = center_y + line_data[3]
+
+            # Применяем координаты к мечу
+            canvas.coords(Sword, start_x, start_y, end_x, end_y)
+
+            # Определяем клетки, которых касается меч
+            TO_ATTACK_SWORD = get_cells_under_sword(start_x, start_y, end_x, end_y)
+    if not ATTACK:
+        if B == 1:
+            # Центр игрока
+            center_x = Nx * wx + wx / 2
+            center_y = Ny * wx + wx / 2
+
+            # Вектор от игрока к курсору
+            dx = Mx - center_x
+            dy = My - center_y
+
+            # Вычисляем угол в градусах
+            angle = math.degrees(math.atan2(dy, dx))
+
+            ATTACK = True
+            ATTACK_P = 0
+            LIST_ATTACK = generate_rotating_lines_simple(angle)
+
+            # Показываем меч и устанавливаем начальную позицию
+            canvas.itemconfig(Sword, state='normal')
+            if LIST_ATTACK:
+                line_data = LIST_ATTACK[0]
+                canvas.coords(Sword,
+                              center_x, center_y,
+                              center_x + line_data[2],
+                              center_y + line_data[3])
+
+    canvas.itemconfig(Objects[X * Y + 1], text=f'Время:\n{int(t.time() - TIME_START_GAME)}/{120 if Game == -1 else
+    150 if Game == -2 else 140 if Game in [-7] else 150 if Game in [-8] else 100 if Game in [-10] else 160 if Game in [-13] else 180} сек.'
+    if Game not in [-4, -5, -6, BOSS_LEVEL, -9, BOSS_LEVEL_2, -12] else f'Убито {"рыцарей" if
+    not Game in [-5, -9, -12] else "морозов" if not Game in [-9, -12] else "магов" if not Game in [-12] else "амфибий"}:\n{KILL_KNIGHT}/{10 if not Game in [-6, -12]
+    else 5}' if Game not in [BOSS_LEVEL, BOSS_LEVEL_2]
     else f"УБЕЙ БОССА!\n{HP_BOSS}/1000 хп")
+
+    Nx, Ny = Nx % X, Ny % Y
+    D = 3
+    if Game != -2:
+        D = 4
+    if True: # False поставил временно и для тестов потом после тестов поставить True
+        if Game == BOSS_LEVEL:
+            if N % 30 < 10:
+                if N % 10 > 5:
+                    D = N % 5
+                elif N % 5 != 0:
+                    D = -N % 5
+                elif N % 10 != 5:
+                    D = 4
+                else:
+                    D = 1
+
+    if Energy != 0:
+        if keys_pressed['e']:
+            Energy -= 1
+            D += 3
+
+    # 6 + i
+
+    sp_index = X * Y + 6 + -3  # начальный индекс полосок HP
+    canvas.itemconfig(Objects[sp_index], text=f'Спичек:\n{int(sp)}/25 штук')
+
+    hp_index = X * Y + 6 + -1  # начальный индекс полосок HP
+    canvas.itemconfig(Objects[hp_index], fill='#ffaa00', text=f'Жизней {int(hp)}/10')
+
+    for i in range(10):
+        hp_index = X * Y + 6 + i  # начальный индекс полосок HP
+        canvas.itemconfig(Objects[hp_index], fill='#ffaa00' if int(i + 1) <= int(hp) else '#330000')
+
+    canvas.itemconfig(Objects[X * Y + 6 + 11], text=f'Энергия:\n{int(Energy)}/250')
+
+    i = -1
+    for x in range(X): # цикл обработки визуализации
+        for y in range(Y):
+            i += 1
+            S = Objects[i]
+            T = Type[i]
+
+            if x * wx + wx > Mx >= x * wx and y * wx + wx > My >= y * wx:
+                canvas.itemconfig(S, width=2)
+            else:
+                canvas.itemconfig(S, width=1)
+
+            dx = min(abs(x - Nx), X - abs(x - Nx))
+            dy = min(abs(y - Ny), Y - abs(y - Ny))
+            d = (dx ** 2 + dy ** 2) ** 0.5
+
+            a = 0 # для тестов. Если не используется ставить a=0
+
+            if d <= D + a: # 7.0
+                if T == 'Земля':
+                    canvas.itemconfig(S, fill='#003300', outline='#00ffaa')
+                if T == 'Вода':
+                    canvas.itemconfig(S, fill='#001144', outline='#00aaff')
+                if T == 'Снег':
+                    canvas.itemconfig(S, fill='#707070', outline='#eaeaea')
                 if T == 'Лед':
                     canvas.itemconfig(S, fill='#6060aa', outline='#eaeaea')
+                if [x, y] in Ec: # плохиш
+                    for n in E:
+                        if [x, y] == [n.x, n.y]:
+                            if n.T == 'Холод':
+                                canvas.itemconfig(S, fill='#113355', outline='#00aaff')
+                            if n.T == 'Призрак':
+                                canvas.itemconfig(S, fill='#309030', outline='#c0e0c0')
+                            if n.T == 'Рыцарь':
+                                canvas.itemconfig(S, fill='#110000', outline='#00aaff')
                             if n.T == 'Мега-Рыцарь': # босс
                                 canvas.itemconfig(S, fill='#440011', outline='#ffaaaa')
-                            if n.T == 'Мега-Рыцарь': # босс
-                                canvas.itemconfig(S, fill='#110000', outline='#440011')# ты как бы чувствуешь из далека босса, сделано для баланса
+                            if n.T == 'Ключ':
+                                canvas.itemconfig(S, fill='#69421d', outline='yellow')
                             if n.T == 'Амфибия':
                                 canvas.itemconfig(S, fill='#000080', outline='#4169e1')
                             if n.T == 'Леденящий':
                                 canvas.itemconfig(S, fill='#0080e0', outline='#4169e1')
+                            if n.T == 'Маг':
+                                canvas.itemconfig(S, fill='#420062', outline='#c53dff')
                             if n.T == 'Гидра': # босс
                                 canvas.itemconfig(S, fill='#360066', outline='#ffaaff')
 
+                if Nx == x and Ny == y: # игрок
+                    canvas.itemconfig(S, fill='#335500', outline='#00ffaa')
+            elif d <= D + 5 + a:
+                if T == 'Вода':
+                    canvas.itemconfig(S, fill='#000000', outline='#001133')
+                elif T == 'Снег':
+                    canvas.itemconfig(S, fill='#000000', outline='#222222')
                 elif T == 'Лед':
                     canvas.itemconfig(S, fill='#000000', outline='#112266')
+                else:
+                    canvas.itemconfig(S, fill='#000000', outline='#003300')
+
                 if [x, y] in Ec: # плохиш
                     for n in E:
                         if [x, y] == [n.x, n.y]:
-                            if n.T == 'Мега-Рыцарь': # босс
-                                canvas.itemconfig(S, fill='#000000', outline='#000000')# ты как бы чувствуешь из далека босса, сделано для баланса
+                            if n.T == 'Призрак': # ты как бы чувствуешь из далека призрака, сделано для баланса
+                                canvas.itemconfig(S, fill='#001100', outline='#309030')
+                            if n.T == 'Мега-Рыцарь':  # босс
+                                canvas.itemconfig(S, fill='#110000',
+                                                  outline='#440011')  # ты как бы чувствуешь из далека босса, сделано для баланса
                             if n.T == 'Гидра': # босс
                                 canvas.itemconfig(S, fill='#330033', outline='#360066')# ты как бы чувствуешь из далека босса, сделано для баланса
 
+            else:
+                canvas.itemconfig(S, fill='#000000', outline='#000000')
+    i = -1
+    SP = 0
+
+    KEY_X = -1
+    KEY_Y = -1
+
+    if sp != 0:
+        if keys_pressed[' ']:
+            SP = 1
+            sp -= 1
+
+    for x in range(X): # цикл обработки визуализации
+        for y in range(Y):
+            i += 1
+            S = Objects[i]
+            T = Type[i]
+
+            dx = min(abs(x - Nx), X - abs(x - Nx))
+            dy = min(abs(y - Ny), Y - abs(y - Ny))
+            d = (dx ** 2 + dy ** 2) ** 0.5
+
+            if d <= 5:
+                if SP:
+                    Temp[i] += 75
+                    if d <= D:
+                        canvas.itemconfig(S, fill='#220000', outline='#ff0000')
+                    else:
+                        canvas.itemconfig(S, outline='#ff0000')
+
+            coos = 25
+
+            if Game in [-10]:
+                coos = 35
+            if Game in [-13]:
+                coos = 35
+
+            if d > D:  # 'плохиши' появляются только в темноте, чтоб игрок их не видел
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
                         if Game in [-13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
@@ -880,33 +1306,71 @@ def I(): # сама игра
                                 E.append(Enemy("Маг", x, y))
                                 Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
+                    if not ([x, y] in Ec):
+                        if T in ['Земля']:
+                            if Game in [-10, -13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                                E.append(Enemy("Рыцарь", x, y))
+                                Ec.append([x, y])
+                if random.randint(1, X * Y * coos) == 1:
+                    if not ([x, y] in Ec):
+                        if T in ['Земля']:
+                            if Game in [-1, -3, -5, -8, -13]:  # Холод будет только на первом уровне
+                                E.append(Enemy("Холод", x, y))
+                                Ec.append([x, y])
+                            if Game in [-4, -5, -6]:  # Рыцарь будет только на четвертом уровне
+                                E.append(Enemy("Рыцарь", x, y))
+                                Ec.append([x, y])
                             if Game in [-9, -10, -11]: # Маг будет только на девятом уровне
                                 E.append(Enemy("Маг", x, y))
                                 Ec.append([x, y])
                         if T in ['Вода']:
-                            if Game in [-7]:
+                            if Game in [-7, -10, -12]:
                                 E.append(Enemy("Амфибия", x, y, hp=225))
                                 Ec.append([x, y])
-                            if Game in [-8]:
+                            if Game in [-8, -13]:
                                 E.append(Enemy("Леденящий", x, y, hp=225))
                                 Ec.append([x, y])
-                if random.randint(1, X * Y * 25) == 1:
                             if Game in [BOSS_LEVEL_2]:  # ключ для нанесения урона боссу (по другому нельзя)
                                 E.append(Enemy('Ключ', x, y))
                                 Ec.append([x, y])
+                        if Game in [-2, -3, -6, -11]:
+                            E.append(Enemy("Призрак", x, y, hp=225))
+                            Ec.append([x, y])
+                if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
                         if T in ['Земля']:
                             if Game in [BOSS_LEVEL]:  # ключ для нанесения урона боссу (по другому нельзя)
                                 E.append(Enemy('Ключ', x, y))
                                 Ec.append([x, y])
+
+            if [Nx, Ny] == [x, y]:
+                if T == 'Снег':
+                    hp -= 0.2
                 if T == 'Лед':
                     hp -= 0.2
+
+            if Temp[i] > 0:
+                Temp[i] -= 1
+
+            for e in E:
                 if e.T == 'Ключ':
                     if [Nx, Ny] == [e.x, e.y]:
                         E.remove(e)
                         Ec.remove([e.x, e.y])
                         KEY_X = Nx
                         KEY_Y = Ny
+
+
+                if e.T == 'Холод':
+                    if IF(e.x, e.y, x, y):
+                        Temp[i] -= 5
+                    if [e.x, e.y] == [x, y]:
+                        if Temp[i] >= 25:
+                            if Game in [-5]:
+                                KILL_KNIGHT += 1
+                            E.remove(e)
+                            Ec.remove([e.x, e.y])
+
                 if e.T == 'Леденящий':
                     if IF(e.x, e.y, x, y):
                         Temp[i] -= 5
@@ -916,7 +1380,12 @@ def I(): # сама игра
                                 KILL_KNIGHT += 1
                             E.remove(e)
                             Ec.remove([e.x, e.y])
+
+                # В функции I(), в части обработки атаки рыцаря:
+
                 if e.T == 'Амфибия':
+
+
                     if Type[e.x * Y + e.y] != 'Вода':
                         if N % 2 == 0:
                             if e.Hod:
@@ -924,6 +1393,7 @@ def I(): # сама игра
                                 e.Move_Everywhere(Nx, Ny)
                                 Ec[Ec.index([x2, y2])] = [e.x, e.y]
                                 e.Hod = not e.Hod
+
                     else:
                         if e.Hod:
                             x2, y2 = e.x, e.y
@@ -931,10 +1401,47 @@ def I(): # сама игра
                             Ec[Ec.index([x2, y2])] = [e.x, e.y]
                             e.Hod = not e.Hod
                     if TO_ATTACK_SWORD is not None and (e.x, e.y) in TO_ATTACK_SWORD and ATTACK:
+                        if Game in [-12]:
+                            KILL_KNIGHT += 1
                         if e in E:
                             E.remove(e)
                         if [e.x, e.y] in Ec:
                             Ec.remove([e.x, e.y])
+
+                if e.T == 'Рыцарь':
+                    if N % 2 == 0:
+                        if e.Hod:
+                            x2, y2 = e.x, e.y
+                            e.Move_To_Player_No_Water(Nx, Ny)
+                            Ec[Ec.index([x2, y2])] = [e.x, e.y]
+                            e.Hod = not e.Hod
+
+                    # Добавьте проверку на None:
+                    if TO_ATTACK_SWORD is not None and (e.x, e.y) in TO_ATTACK_SWORD and ATTACK:
+                        if Game in [-4, -6]:
+                            KILL_KNIGHT += 1
+                        if e in E:
+                            E.remove(e)
+                        if [e.x, e.y] in Ec:
+                            Ec.remove([e.x, e.y])
+
+                if e.T == 'Маг':
+                    if N % 2 == 0:
+                        if e.Hod:
+                            x2, y2 = e.x, e.y
+                            e.Move_To_Player_No_Water(Nx, Ny)
+                            Ec[Ec.index([x2, y2])] = [e.x, e.y]
+                            e.Hod = not e.Hod
+
+                    # Добавьте проверку на None:
+                    if TO_ATTACK_SWORD is not None and (e.x, e.y) in TO_ATTACK_SWORD and ATTACK:
+                        if Game in [-9]:
+                            KILL_KNIGHT += 1
+                        if e in E:
+                            E.remove(e)
+                        if [e.x, e.y] in Ec:
+                            Ec.remove([e.x, e.y])
+
                 if e.T == 'Мега-Рыцарь':
                     if IF(e.x, e.y, x, y):
                         if T == 'Вода': # Босс 'затопчивает' воду
@@ -973,6 +1480,41 @@ def I(): # сама игра
                     Ec[int(e.t) - 1][0] = e.x
                     Ec[int(e.t) - 1][1] = e.y
 
+
+                if e.T == 'Призрак':
+                    if e.Hod:
+                        x2, y2 = e.x, e.y
+                        e.Move_Everywhere(Nx, Ny)
+                        Ec[Ec.index([x2, y2])] = [e.x, e.y]
+                        e.Hod = not e.Hod
+
+                    dx = min(abs(e.x - Nx), X - abs(e.x - Nx))
+                    dy = min(abs(e.y - Ny), Y - abs(e.y - Ny))
+                    d = (dx ** 2 + dy ** 2) ** 0.5
+
+                    if d <= D:
+                        e.hp -= 0.1
+
+                if e.hp <= 0:
+                    if e.T == 'Рыцарь' and Game in [-4, -6]:
+                        KILL_KNIGHT += 1
+                    E.remove(e)
+                    Ec.remove([e.x, e.y])
+
+
+
+            if Temp[i] < -45:
+                if T == 'Снег':
+                    Temp[i] = -45
+
+            if Temp[i] < -25:
+                if T == 'Земля':
+                    Type[i] = 'Снег'
+
+            if Temp[i] > -25:
+                if T == 'Снег':
+                    Type[i] = 'Земля'
+
             if Game <= -8:
                 if Temp[i] < -45:
                     if T == 'Лед':
@@ -985,8 +1527,47 @@ def I(): # сама игра
                 if Temp[i] > -25:
                     if T == 'Лед':
                         Type[i] = 'Вода'
+
+            for dx in [-1, 0, 1]:
+                for dy in [-1, 0, 1]:
+                    ex = x + dx
+                    ey = y + dy
+
+                    ei = (ex) % X * Y + (ey) % Y
+
+                    if Temp[ei] > Temp[i]:
+                        Temp[i] += 1
+                        Temp[ei] -= 1
+
+                    if Temp[ei] < Temp[i]:
+                        Temp[i] -= 1
+                        Temp[ei] += 1
+
+    Attack = []
+
+    for e in E:
+        if e.T == 'Маг':
+            if e.t != '0':
+                Attack.append((e.x, e.y, e.t))
+
+
     for x in range(X):
         for y in range(Y):
+            for a in Attack:
+                dx = min(abs(a[0] - x), X - abs(a[0] - x))
+                dy = min(abs(a[1] - y), Y - abs(a[1] - y))
+                d = (dx ** 2 + dy ** 2) ** 0.5
+                dx2 = min(abs(Nx - x), X - abs(Nx - x))
+                dy2 = min(abs(Ny - y), Y - abs(Ny - y))
+                d2 = (dx2 ** 2 + dy2 ** 2) ** 0.5
+                if d < a[2] / 2:
+                    if d2 <= D + 5 :
+                        canvas.itemconfig(Objects[x * Y + y], outline=Color_0_to_10_Magic[a[2]])
+                    if a[2] == 10:
+                        if d2 <= D + 5:
+                            canvas.itemconfig(Objects[x * Y + y], fill='#c71585', outline='#c71585')
+                        if (x, y) == (Nx, Ny):
+                            hp -= 1
             if (x == KEY_X or y == KEY_Y) and (x != KEY_X or y != KEY_Y):
                 canvas.itemconfig(Objects[x * Y + y], outline='#e8aa0e')
                 if [x, y] in Ec:
@@ -994,9 +1575,13 @@ def I(): # сама игра
                         if e.T == 'Мега-Рыцарь':
                             if e.x == x and e.y == y:
                                 print('Было попадание')
+                                HP_BOSS -= 50  # На самом деле снесется 100 ХП
+                        if e.T == 'Гидра':
+                            if e.x == x and e.y == y:
+                                print('Было попадание')
                                 HP_BOSS -= 50 # На самом деле снесется 100 ХП
 
-            if PHASE_BOSS != 0:
+            if PHASE_BOSS > 0:
                 if (
                         (x == X_BOSS or y == Y_BOSS or x == X_BOSS + 1 or y == Y_BOSS + 1)
                         and
@@ -1005,13 +1590,22 @@ def I(): # сама игра
                 )\
                         :
                     canvas.itemconfig(Objects[x * Y + y], outline=Color_0_to_5[int(PHASE_BOSS) - 1])
-            if PHASE_BOSS == 10:
+            if PHASE_BOSS < 0:
                 if (
                         (x == X_BOSS or y == Y_BOSS or x == X_BOSS + 1 or y == Y_BOSS + 1)
                         and
                 (x != X_BOSS or y != Y_BOSS or x != X_BOSS + 1 or y != Y_BOSS + 1)
 
                 )\
+                        :
+                    canvas.itemconfig(Objects[x * Y + y], outline=Color_0_to_10_Magic[abs(int(PHASE_BOSS)) - 1])
+            if PHASE_BOSS == 10:
+                if (
+                        (x == X_BOSS or y == Y_BOSS or x == X_BOSS + 1 or y == Y_BOSS + 1)
+                        and
+                        (x != X_BOSS or y != Y_BOSS or x != X_BOSS + 1 or y != Y_BOSS + 1)
+
+                ) \
                         :
                     canvas.itemconfig(Objects[x * Y + y], fill="#ff3333", outline="#ff3333")
 
@@ -1031,3 +1625,166 @@ def I(): # сама игра
                     if Nx == x and Ny == y:
                         hp -= 3.4
 
+
+    BB = 0
+
+Color_0_to_5 = C_C.CCh_list_h('#000000', '#c20000', Repeat=10)
+Color_0_to_10_Magic = C_C.CCh_list_h('#000000', '#2b003d', Repeat=10)
+
+def G():
+    global All_Objects, Mx, My, B, Game, lvls, Objects, TIME_START_GAME, hp, Energy, sp, Nx, Ny, BB, KILL_KNIGHT
+
+    HIDE = False
+
+    for i in lvls:
+        i.Click(Mx, My, B)
+        i.Open(Mx, My)
+
+        if i.On:
+            if 'Уровень' in i.name:
+                Game = -int(i.name.split('-')[1])
+                HIDE = True
+                # Запускаем музыку игры при выборе уровня
+                play_game_music()
+            if 'Назад' in i.name:
+                Game = 0
+                HIDE = True
+                # Возвращаем музыку меню при возврате
+                play_menu_music()
+
+    for i in lvls:
+        if HIDE:
+            i.Hide()
+            i.Restart()
+
+    if Game == 0:
+        canvas.itemconfig(Rectangles, state='hidden')
+        canvas.config(bg='#000000')
+        for i in All_Objects:
+            if HIDE:
+                i.Restart()
+                i.Show()
+    else:
+        TIME_START_GAME = t.time()
+        Nx = 15
+        Ny = 15
+        Gnrt()
+        if Game < 0: # 1й уровень - борьба только с морозом; 2й уровень - борьба с призраками
+            Objects[X * Y + 18].Show()
+            canvas.itemconfig(Rectangles, state='hidden')
+            canvas.config(bg='#000000')
+            hp = 10
+            Energy = 250
+            sp = 25
+            KILL_KNIGHT = 0
+
+            for i in Objects:
+                if HIDE:
+                    canvas.itemconfig(i, state='normal')
+
+    BB = 0
+
+Speed = 100
+
+def A():
+    global Game, Speed, keys_pressed
+
+    if keys_pressed['f']:
+        Speed = 50
+    else:
+        Speed = 100
+
+    if Game < 0:
+        I()
+    if Game == 0:
+        M()
+    if Game == 1:
+        G()
+
+    canvas.after(Speed, A)
+
+
+def M():
+    global All_Objects, Mx, My, B, Game, lvls
+
+    HIDE = False
+
+    for i in All_Objects:
+        i.Click(Mx, My, B)
+        i.Open(Mx, My)
+
+        if i.On:
+            if i.name == 'Начать игру':
+                Game = 1
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+    if Game == 1:
+        canvas.config(bg='#001000')
+        canvas.itemconfig(Rectangles, state='normal')
+        for i in All_Objects:
+            if HIDE:
+                i.Hide()
+                i.Restart()
+        for i in lvls:
+            if HIDE:
+                i.Show()
+                i.Restart()
+
+
+# Запускаем начальную музыку при старте программы
+def on_program_start():
+    """Запускается при старте программы"""
+    # Можно добавить начальную музыку здесь
+    print("Программа запущена")
+
+
+# Обработчик закрытия окна
+def on_closing():
+    """Останавливает музыку при закрытии программы"""
+    music_player.stop_music()
+    root.destroy()
+
+
+root.protocol("WM_DELETE_WINDOW", on_closing)
+
+A()
+
+B = 0
+BB = 0
+
+
+def mouse_press(event):
+    global B, BB
+    B = 1  # Мышь зажата
+    BB = 1
+
+
+def mouse_release(event):
+    global B
+    B = 0  # Мышь отпущена
+
+
+root.bind('<ButtonPress-1>', mouse_press)  # Левая кнопка мыши
+root.bind('<ButtonRelease-1>', mouse_release)  # Отпускание левой кнопки
+
+root.mainloop()
+
+
+# Запускаем программу
+on_program_start()
+
+TIME_END = t.time()
+try:
+    with open('Statis_РГ.txt', 'r') as f:
+        line = f.readline().strip()
+        if line:
+            file_value = float(line)  # используем float вместо int
+        else:
+            file_value = 0.0
+except (FileNotFoundError, ValueError):
+    file_value = 0.0
+
+with open('Statis_РГ.txt', 'w') as f:
+    f.write(str(file_value + TIME_END - TIME_START))
