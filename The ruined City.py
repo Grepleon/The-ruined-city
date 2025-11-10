@@ -67,6 +67,9 @@
                                 canvas.itemconfig(S, fill='#000080', outline='#4169e1')
                             if n.T == 'Леденящий':
                                 canvas.itemconfig(S, fill='#0080e0', outline='#4169e1')
+                            if n.T == 'Гидра': # босс
+                                canvas.itemconfig(S, fill='#360066', outline='#ffaaff')
+
                 elif T == 'Лед':
                     canvas.itemconfig(S, fill='#000000', outline='#112266')
                 if [x, y] in Ec: # плохиш
@@ -74,6 +77,30 @@
                         if [x, y] == [n.x, n.y]:
                             if n.T == 'Мега-Рыцарь': # босс
                                 canvas.itemconfig(S, fill='#000000', outline='#000000')# ты как бы чувствуешь из далека босса, сделано для баланса
+                            if n.T == 'Гидра': # босс
+                                canvas.itemconfig(S, fill='#330033', outline='#360066')# ты как бы чувствуешь из далека босса, сделано для баланса
+
+                if random.randint(1, X * Y * coos) == 1:
+                    if not ([x, y] in Ec):
+                        if Game in [-13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                            E.append(Enemy("Призрак", x, y))
+                            Ec.append([x, y])
+                if random.randint(1, X * Y * coos) == 1:
+                    if not ([x, y] in Ec):
+                        if T in ['Вода']:
+                            if Game in [-13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                                E.append(Enemy("Амфибия", x, y))
+                                Ec.append([x, y])
+                if random.randint(1, X * Y * coos) == 1:
+                    if not ([x, y] in Ec):
+                        if T in ['Земля']:
+                            if Game in [-13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                                E.append(Enemy("Маг", x, y))
+                                Ec.append([x, y])
+                if random.randint(1, X * Y * coos) == 1:
+                            if Game in [-9, -10, -11]: # Маг будет только на девятом уровне
+                                E.append(Enemy("Маг", x, y))
+                                Ec.append([x, y])
                         if T in ['Вода']:
                             if Game in [-7]:
                                 E.append(Enemy("Амфибия", x, y, hp=225))
@@ -82,6 +109,9 @@
                                 E.append(Enemy("Леденящий", x, y, hp=225))
                                 Ec.append([x, y])
                 if random.randint(1, X * Y * 25) == 1:
+                            if Game in [BOSS_LEVEL_2]:  # ключ для нанесения урона боссу (по другому нельзя)
+                                E.append(Enemy('Ключ', x, y))
+                                Ec.append([x, y])
                     if not ([x, y] in Ec):
                         if T in ['Земля']:
                             if Game in [BOSS_LEVEL]:  # ключ для нанесения урона боссу (по другому нельзя)
@@ -141,6 +171,26 @@
                         e.y = Y_BOSS + 1
                     Ec[int(e.t) - 1][0] = e.x
                     Ec[int(e.t) - 1][1] = e.y
+
+                if e.T == 'Гидра':
+                    if IF(e.x, e.y, x, y):
+                        if T == 'Земля': # Босс 'замокревает' землю
+                            Type[i] = 'Вода'
+                    if e.t == '1':
+                        e.x = X_BOSS
+                        e.y = Y_BOSS
+                    if e.t == '2':
+                        e.x = X_BOSS + 1
+                        e.y = Y_BOSS
+                    if e.t == '3':
+                        e.x = X_BOSS
+                        e.y = Y_BOSS + 1
+                    if e.t == '4':
+                        e.x = X_BOSS + 1
+                        e.y = Y_BOSS + 1
+                    Ec[int(e.t) - 1][0] = e.x
+                    Ec[int(e.t) - 1][1] = e.y
+
             if Game <= -8:
                 if Temp[i] < -45:
                     if T == 'Лед':
@@ -185,3 +235,17 @@
 
                     if Nx == x and Ny == y:
                         hp -= 3.4
+
+            if PHASE_BOSS == -10:
+                if (
+                        (x == X_BOSS or y == Y_BOSS or x == X_BOSS + 1 or y == Y_BOSS + 1)
+                        and
+                (x != X_BOSS or y != Y_BOSS or x != X_BOSS + 1 or y != Y_BOSS + 1)
+
+                )\
+                        :
+                    canvas.itemconfig(Objects[x * Y + y], fill="#c71585", outline="#c71585")
+
+                    if Nx == x and Ny == y:
+                        hp -= 3.4
+
