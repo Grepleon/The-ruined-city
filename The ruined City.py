@@ -736,21 +736,24 @@ PHASE_BOSS = 0
 HP_BOSS = 0
 N = 0
 MOVE_WATER_LEVEL = [-8, -12, -12.5, -13]
+PHASE_BOSS_2 = 0
 
 def I(): # сама игра
     """Сама игра, здесь будут происходить основные игровые битвы и обработки...."""
     global Nx, Ny, Game, X, Y, Mx, My, B, Objects, E, Ec, TIME_START_GAME, hp, sp, Energy,\
         Ending, Sword, BB, ATTACK, ATTACK_P, LIST_ATTACK, TO_ATTACK_SWORD, N, KILL_KNIGHT,\
-        HP_BOSS, X_BOSS, Y_BOSS, PHASE_BOSS
+        HP_BOSS, X_BOSS, Y_BOSS, PHASE_BOSS, PHASE_BOSS_2
     N += 1
 
     BOSS_LEVEL = -6.5 # потом поставить 6.5, 7 - временно для тестов
     BOSS_LEVEL_2 = -12.5
+    BOSS_LEVEL_FINAL = -14.5 # ПОСЛЕДНИЙ УРОВЕНЬ - ЭТО БОСС!
 
     if TO_ATTACK_SWORD is None:
         TO_ATTACK_SWORD = set()
 
     if Game == -6 and (KILL_KNIGHT >= 5): # 0 - поставил временно, по хорошему ставить 10 (или 5 если 10 - слишком сложно)
+        PHASE_BOSS_2 = 0
         Energy += 100 # чтоб легче жилось и босс легче проходился
         hp += 1
         HP_BOSS = 1000
@@ -790,12 +793,14 @@ def I(): # сама игра
 
         return 'БОСС'
 
-    if Game == -12 and (KILL_KNIGHT >= 5): # 0 - поставил временно, по хорошему ставить 10 (или 5 если 10 - слишком сложно)
-        Energy += 100 # чтоб легче жилось и босс легче проходился
+    if Game == -12 and (
+            KILL_KNIGHT >= 5):  # 0 - поставил временно, по хорошему ставить 10 (или 5 если 10 - слишком сложно)
+        PHASE_BOSS_2 = 0
+        Energy += 100  # чтоб легче жилось и босс легче проходился
         hp += 1
         HP_BOSS = 1000
         PHASE_BOSS = 0
-        Game = BOSS_LEVEL_2 # потом поставить 6.5, 7 - временно для тестов
+        Game = BOSS_LEVEL_2
         Ec = [[1, 1], [1, 2], [2, 1], [2, 2]]
 
         in_water = True
@@ -819,11 +824,51 @@ def I(): # сама игра
                         Ec[n][0] = 0
                         Ec[n][1] += 1
 
-
         E = [Enemy("Гидра", Ec[0][0], Ec[0][1], hp=1000, t='1'),
              Enemy("Гидра", Ec[1][0], Ec[1][1], hp=1000, t='2'),
              Enemy("Гидра", Ec[2][0], Ec[2][1], hp=1000, t='3'),
              Enemy("Гидра", Ec[3][0], Ec[3][1], hp=1000, t='4')
+             ]
+
+        X_BOSS, Y_BOSS = Ec[0][0], Ec[0][1]
+
+        return 'БОСС'
+
+    if Game == -14:
+        PHASE_BOSS_2 = 0
+        Energy = 500 # чтоб легче жилось и босс легче проходился
+        hp = 12
+        HP_BOSS = 1000
+        PHASE_BOSS = 0
+        Game = BOSS_LEVEL_FINAL
+        Ec = [[1, 1], [1, 2], [2, 1], [2, 2]]
+
+        in_water = True
+        n = -1
+        while in_water != False:
+            in_water = False
+            n = -1
+            for coords in Ec:
+                n += 1
+                x, y = coords[0], coords[1]
+
+                if Type[x * Y + y] == 'Вода':
+                    in_water = True
+            n = -1
+            for coords in Ec:
+                n += 1
+                if in_water:
+                    Ec[n][0] += 1
+
+                    if Ec[n][0] >= X:
+                        Ec[n][0] = 0
+                        Ec[n][1] += 1
+
+
+        E = [Enemy("Некромант", Ec[0][0], Ec[0][1], hp=1000, t='1'),
+             Enemy("Некромант", Ec[1][0], Ec[1][1], hp=1000, t='2'),
+             Enemy("Некромант", Ec[2][0], Ec[2][1], hp=1000, t='3'),
+             Enemy("Некромант", Ec[3][0], Ec[3][1], hp=1000, t='4')
              ]
 
         X_BOSS, Y_BOSS = Ec[0][0], Ec[0][1]
@@ -869,6 +914,8 @@ def I(): # сама игра
             or (t.time() - TIME_START_GAME >= 100 and Game == -10) \
             or (t.time() - TIME_START_GAME >= 180 and Game == -11) \
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL_2) \
+            or (t.time() - TIME_START_GAME >= 160 and Game == -13) \
+            or (HP_BOSS <= 0 and Game == BOSS_LEVEL_FINAL) \
             :
 
         for i in END:
@@ -988,6 +1035,53 @@ def I(): # сама игра
         if random.randint(1, 25) == 1:
             PHASE_BOSS = -0.1
 
+    if Game == BOSS_LEVEL_FINAL:
+
+        # ход босса
+        if random.randint(1, 25) == 1:
+            PHASE_BOSS = -0.1
+        if random.randint(1, 25) == 1: # босс иногда будет телепортиоваться
+            PHASE_BOSS_2 = 1
+        if PHASE_BOSS_2 == 10:
+            PHASE_BOSS_2 = 0
+            if random.randint(1, 3) == 1:
+                PHASE_BOSS = -0.1
+        if PHASE_BOSS_2 > 0:
+            PHASE_BOSS_2 += 1
+        if PHASE_BOSS_2 == 5:
+            a = random.randint(0, X - 3)
+            b = random.randint(0, Y - 3)
+            Ec = [[a + 1, b + 1], [a + 1, b + 2], [a + 2, b + 1], [a + 2, b + 2]]
+            in_water = True
+            n = -1
+            while in_water != False:
+                in_water = False
+                n = -1
+                for coords in Ec:
+                    n += 1
+                    x, y = coords[0], coords[1]
+
+                    if Type[x * Y + y] == 'Вода':
+                        in_water = True
+                n = -1
+                for coords in Ec:
+                    n += 1
+                    if in_water:
+                        Ec[n][0] += 1
+
+                        if Ec[n][0] >= X:
+                            Ec[n][0] = 0
+                            Ec[n][1] += 1
+
+            for i in range(4):
+                E[i].x = Ec[i][0]
+                E[i].y = Ec[i][1]
+
+            X_BOSS = Ec[0][0]
+            Y_BOSS = Ec[0][1]
+
+
+
     if PHASE_BOSS == 10:
         PHASE_BOSS = 0
 
@@ -1027,6 +1121,12 @@ def I(): # сама игра
 
             if d <= 1:
                 hp -= 1 # для босса нормально, тестил
+
+        if e.T == 'Некромант':
+            if TO_ATTACK_SWORD is not None and (e.x, e.y) in TO_ATTACK_SWORD and ATTACK:
+                HP_BOSS -= 5
+                if random.randint(1, 3) == 1:
+                    PHASE_BOSS_2 = 1
 
         if e.T == 'Амфибия':
             dx = min(abs(e.x - Nx), X - abs(e.x - Nx))
@@ -1137,9 +1237,9 @@ def I(): # сама игра
 
     canvas.itemconfig(Objects[X * Y + 1], text=f'Время:\n{int(t.time() - TIME_START_GAME)}/{120 if Game == -1 else
     150 if Game == -2 else 140 if Game in [-7] else 150 if Game in [-8] else 100 if Game in [-10] else 160 if Game in [-13] else 180} сек.'
-    if Game not in [-4, -5, -6, BOSS_LEVEL, -9, BOSS_LEVEL_2, -12] else f'Убито {"рыцарей" if
+    if Game not in [-4, -5, -6, BOSS_LEVEL, -9, BOSS_LEVEL_2, -12, BOSS_LEVEL_FINAL] else f'Убито {"рыцарей" if
     not Game in [-5, -9, -12] else "морозов" if not Game in [-9, -12] else "магов" if not Game in [-12] else "амфибий"}:\n{KILL_KNIGHT}/{10 if not Game in [-6, -12]
-    else 5}' if Game not in [BOSS_LEVEL, BOSS_LEVEL_2]
+    else 5}' if Game not in [BOSS_LEVEL, BOSS_LEVEL_2, BOSS_LEVEL_FINAL]
     else f"УБЕЙ БОССА!\n{HP_BOSS}/1000 хп")
 
     Nx, Ny = Nx % X, Ny % Y
@@ -1223,8 +1323,10 @@ def I(): # сама игра
                                 canvas.itemconfig(S, fill='#0080e0', outline='#4169e1')
                             if n.T == 'Маг':
                                 canvas.itemconfig(S, fill='#420062', outline='#c53dff')
-                            if n.T == 'Гидра': # босс
+                            if n.T == 'Гидра':  # босс
                                 canvas.itemconfig(S, fill='#360066', outline='#ffaaff')
+                            if n.T == 'Некромант': # босс
+                                canvas.itemconfig(S, fill='#110000', outline='#c53dff')
 
                 if Nx == x and Ny == y: # игрок
                     canvas.itemconfig(S, fill='#335500', outline='#00ffaa')
@@ -1590,6 +1692,27 @@ def I(): # сама игра
                 )\
                         :
                     canvas.itemconfig(Objects[x * Y + y], outline=Color_0_to_5[int(PHASE_BOSS) - 1])
+            if 6 > PHASE_BOSS_2 > 0:
+                if (
+                        (x == X_BOSS and y == Y_BOSS) or (x == X_BOSS + 1 and y == Y_BOSS + 1) or
+                        (x == X_BOSS + 1 and y == Y_BOSS) or (x == X_BOSS and y == Y_BOSS + 1)
+                )\
+                        :
+                    canvas.itemconfig(Objects[x * Y + y], outline=Color_0_to_10_Tp[-int(PHASE_BOSS_2)])
+            if PHASE_BOSS_2 > 5:
+                if (
+                        (x == X_BOSS and y == Y_BOSS) or (x == X_BOSS + 1 and y == Y_BOSS + 1) or
+                        (x == X_BOSS + 1 and y == Y_BOSS) or (x == X_BOSS and y == Y_BOSS + 1)
+                )\
+                        :
+                    canvas.itemconfig(Objects[x * Y + y], outline=Color_0_to_10_Tp[int(PHASE_BOSS_2) - 1 - 4])
+            if PHASE_BOSS_2 == 10:
+                if (
+                        (x == X_BOSS and y == Y_BOSS) or (x == X_BOSS + 1 and y == Y_BOSS + 1) or
+                        (x == X_BOSS + 1 and y == Y_BOSS) or (x == X_BOSS and y == Y_BOSS + 1)
+                )\
+                        :
+                    canvas.itemconfig(Objects[x * Y + y], outline=Color_0_to_10_Tp[-1], fill=Color_0_to_10_Tp[-1])
             if PHASE_BOSS < 0:
                 if (
                         (x == X_BOSS or y == Y_BOSS or x == X_BOSS + 1 or y == Y_BOSS + 1)
@@ -1629,7 +1752,8 @@ def I(): # сама игра
     BB = 0
 
 Color_0_to_5 = C_C.CCh_list_h('#000000', '#c20000', Repeat=10)
-Color_0_to_10_Magic = C_C.CCh_list_h('#000000', '#2b003d', Repeat=10)
+Color_0_to_10_Magic = C_C.CCh_list_h('#000000', '#a800db', Repeat=10)
+Color_0_to_10_Tp = C_C.CCh_list_h('#000000', '#c154c1', Repeat=6)
 
 def G():
     global All_Objects, Mx, My, B, Game, lvls, Objects, TIME_START_GAME, hp, Energy, sp, Nx, Ny, BB, KILL_KNIGHT
@@ -1777,7 +1901,7 @@ on_program_start()
 
 TIME_END = t.time()
 try:
-    with open('Statis_РГ.txt', 'r') as f:
+    with open('StatisRG.txt', 'r') as f:
         line = f.readline().strip()
         if line:
             file_value = float(line)  # используем float вместо int
@@ -1786,5 +1910,5 @@ try:
 except (FileNotFoundError, ValueError):
     file_value = 0.0
 
-with open('Statis_РГ.txt', 'w') as f:
+with open('StatisRG.txt', 'w') as f:
     f.write(str(file_value + TIME_END - TIME_START))
