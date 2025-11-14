@@ -482,6 +482,11 @@ def S1():
                      'Начать игру', 'Покинуть игру',
                      name='Начать игру'))
 
+    B1.append(button(320, 10, 620, 160,
+                     'green', 'black', '#006611',
+                     'Бесконечный режим', 'Покинуть игру',
+                     name='Inf'))
+
     return B1
 
 
@@ -490,11 +495,28 @@ All_Objects = S1()
 
 def S2():
     B2 = []
+    Name_Games = [
+        'Грядущий мороз',         # 1
+        'Призрач- ная тьма',   # 2
+        'Туман забвения',         # 3
+        'Орден рыцарей',          # 4
+        'Цитадель льда',          # 5
+        'Великий гигант',         # 6
+        'Лед в воде',          # 7         Использовал   (ALT 255) чтобы не было \n, а как бы пробел
+        'Амфотер- ная тварь',  # 8
+        'Башня забвения',         # 9
+        'Союзное братство',       # 10
+        'Магичес- кий ужас',   # 11
+        'Морская баталия',        # 12
+        'Великий переполох',      # 13
+        'Последний оплот',        # 14
+
+    ]
     for i in range(14):
         B2.append(
             button(15 + i * 77, h // 2 - 35 + m.sin(i) * 50, 85 + i * 77, h // 2 + 35 + m.sin(i) * 50,
                    '#00ffaa', '#005522', '#00ffaa',
-                   f'{i + 1}й уровень', 'Покинуть игру',
+                   f'{i + 1}й уровень\n"{'\n'.join(Name_Games[i].split(' '))}"', 'Покинуть игру',
                    name=f'Уровень-{i + 1}')
         )
 
@@ -570,6 +592,40 @@ def S3():
     return B3
 
 Objects = S3()
+
+def S4():
+    B2 = []
+    Name_Games = [
+        'Ледяное царство',
+        'Призрачные дюны',
+        'Темное королевство',
+        'Морские баталии',
+        'Магическая дуэль',
+        'Братья по оружию',
+        'Великий армагеддон',
+    ]
+    for i in range(7):
+        B2.append(
+            button(15 + i * 77 * 2, h // 2 - 35 * 2 * 1, 15 + 70 * 2 + i * 77 * 2, h // 2 + 35 * 2 * 1,
+                   '#ff00ee', '#330020', '#ee00dd',
+                   f'{i + 1}й бесконечная игра\n"{Name_Games[i]}"', 'Покинуть игру',
+                   name=f'Уровень-{i + 1}')
+        )
+
+    B2.append(button(w - 10, 10, w - 180, 90,
+                     'red', 'black', 'red',
+                     f'Назад', 'Покинуть игру',
+                     name=f'Назад'))
+
+    for i in B2:
+        i.Hide()
+
+    return B2
+
+
+lvls = S2()
+
+INF = S4()
 
 Nx, Ny = 15, 15 # Координаты игрока
 
@@ -735,7 +791,8 @@ X_BOSS, Y_BOSS = 0, 0
 PHASE_BOSS = 0
 HP_BOSS = 0
 N = 0
-MOVE_WATER_LEVEL = [-8, -12, -12.5, -13]
+MOVE_WATER_LEVEL = [-8, -12, -12.5, -13,
+                    -1.1, -4.1, -7.1]
 PHASE_BOSS_2 = 0
 
 def I(): # сама игра
@@ -883,22 +940,37 @@ def I(): # сама игра
         for i in END:
             canvas.itemconfig(i, state='normal')
         canvas.itemconfig(END[1], text='Вы погибли...\nНажмите пробел чтобы выйти в главное меню')
+        canvas.itemconfig(Rectangles, state='normal')
         if keys_pressed[' ']:
             play_menu_music()
-            Game = 1
-            for i in lvls:
-                i.Show()
+            if not '.1' in str(Game):
+                Game = 1
+                for i in lvls:
+                    i.Show()
 
-                Objects[X * Y + 18].Hide()
+                    Objects[X * Y + 18].Hide()
 
-                i.Restart()
-            canvas.itemconfig(Rectangles, state='normal')
-            canvas.config(bg='#001000')
-            for i in Objects:
-                canvas.itemconfig(i, state='hidden')
-            for i in END:
-                canvas.itemconfig(i, state='hidden')
-            canvas.itemconfig(Sword, state='hidden')
+                    i.Restart()
+                canvas.config(bg='#001000')
+                for i in Objects:
+                    canvas.itemconfig(i, state='hidden')
+                for i in END:
+                    canvas.itemconfig(i, state='hidden')
+                canvas.itemconfig(Sword, state='hidden')
+            else:
+                Game = 2
+                for i in INF:
+                    i.Show()
+
+                    Objects[X * Y + 18].Hide()
+
+                    i.Restart()
+                canvas.config(bg='#220022')
+                for i in Objects:
+                    canvas.itemconfig(i, state='hidden')
+                for i in END:
+                    canvas.itemconfig(i, state='hidden')
+                canvas.itemconfig(Sword, state='hidden')
 
         return 'Выход из ф-я'
 
@@ -923,20 +995,36 @@ def I(): # сама игра
         canvas.itemconfig(END[1], text='Вы победили!\n\nНажмите пробел чтобы выйти в главное меню')
         if keys_pressed[' ']:
             play_menu_music()
-            Game = 1
+            if not '.1' in str(Game):
+                Game = 1
+                Objects[X * Y + 18].Hide()
 
-            Objects[X * Y + 18].Hide()
+                for i in lvls:
+                    i.Show()
+                    i.Restart()
+                canvas.itemconfig(Rectangles, state='normal')
+                canvas.config(bg='#001000')
+                for i in Objects:
+                    canvas.itemconfig(i, state='hidden')
+                for i in END:
+                    canvas.itemconfig(i, state='hidden')
+                canvas.itemconfig(Sword, state='hidden')
+            else:
+                Game = 2
+                for i in INF:
+                    i.Show()
 
-            for i in lvls:
-                i.Show()
-                i.Restart()
-            canvas.itemconfig(Rectangles, state='normal')
-            canvas.config(bg='#001000')
-            for i in Objects:
-                canvas.itemconfig(i, state='hidden')
-            for i in END:
-                canvas.itemconfig(i, state='hidden')
-            canvas.itemconfig(Sword, state='hidden')
+                    Objects[X * Y + 18].Hide()
+
+                    i.Restart()
+                canvas.config(bg='#220022')
+                canvas.itemconfig(Rectangles, state='normal')
+
+                for i in Objects:
+                    canvas.itemconfig(i, state='hidden')
+                for i in END:
+                    canvas.itemconfig(i, state='hidden')
+                canvas.itemconfig(Sword, state='hidden')
 
         return 'Выход из ф-я'
 
@@ -951,19 +1039,35 @@ def I(): # сама игра
                 canvas.itemconfig(END[1], state='normal', text='Вы в меню.\nНажмите левый шифт, чтобы вернуться в игру. Нажмите пробел, чтобы выйти в главное меню')
                 if keys_pressed[' ']:
                     play_menu_music()
-                    Game = 1
+                    if '.1' not in str(Game):
+                        Game = 1
 
-                    Objects[X * Y + 18].Hide()
+                        Objects[X * Y + 18].Hide()
 
-                    for i in lvls:
-                        i.Show()
-                        i.Restart()
-                    canvas.itemconfig(Rectangles, state='normal')
-                    canvas.config(bg='#001000')
-                    for i in Objects:
-                        canvas.itemconfig(i, state='hidden')
-                    for i in END:
-                        canvas.itemconfig(i, state='hidden')
+                        for i in lvls:
+                            i.Show()
+                            i.Restart()
+                        canvas.itemconfig(Rectangles, state='normal')
+                        canvas.config(bg='#001000')
+                        for i in Objects:
+                            canvas.itemconfig(i, state='hidden')
+                        for i in END:
+                            canvas.itemconfig(i, state='hidden')
+                    else:
+                        Game = 2
+                        for i in INF:
+                            i.Show()
+
+                            Objects[X * Y + 18].Hide()
+
+                            i.Restart()
+                        canvas.itemconfig(Rectangles, state='normal')
+
+                        canvas.config(bg='#220022')
+                        for i in Objects:
+                            canvas.itemconfig(i, state='hidden')
+                        for i in END:
+                            canvas.itemconfig(i, state='hidden')
                     canvas.itemconfig(Sword, state='hidden')
                     III.On = False
                 if keys_pressed['e']:
@@ -1234,17 +1338,20 @@ def I(): # сама игра
                               center_x, center_y,
                               center_x + line_data[2],
                               center_y + line_data[3])
-
-    canvas.itemconfig(Objects[X * Y + 1], text=f'Время:\n{int(t.time() - TIME_START_GAME)}/{120 if Game == -1 else
+    if not '.1' in str(Game):
+        canvas.itemconfig(Objects[X * Y + 1], text=f'Время:\n{int(t.time() - TIME_START_GAME)}/{120 if Game == -1 else
     150 if Game == -2 else 140 if Game in [-7] else 150 if Game in [-8] else 100 if Game in [-10] else 160 if Game in [-13] else 180} сек.'
     if Game not in [-4, -5, -6, BOSS_LEVEL, -9, BOSS_LEVEL_2, -12, BOSS_LEVEL_FINAL] else f'Убито {"рыцарей" if
     not Game in [-5, -9, -12] else "морозов" if not Game in [-9, -12] else "магов" if not Game in [-12] else "амфибий"}:\n{KILL_KNIGHT}/{10 if not Game in [-6, -12]
     else 5}' if Game not in [BOSS_LEVEL, BOSS_LEVEL_2, BOSS_LEVEL_FINAL]
     else f"УБЕЙ БОССА!\n{HP_BOSS}/1000 хп")
+    else:
+        canvas.itemconfig(Objects[X * Y + 1], text=f'Время:\n{int(t.time() - TIME_START_GAME)}')
 
     Nx, Ny = Nx % X, Ny % Y
     D = 3
-    if Game != -2:
+    if Game not in [-2,
+                    -2.1]:
         D = 4
     if True: # False поставил временно и для тестов потом после тестов поставить True
         if Game == BOSS_LEVEL:
@@ -1384,42 +1491,48 @@ def I(): # сама игра
 
             coos = 25
 
-            if Game in [-10]:
+            if Game in [-10, -13,
+                        -7.1]:
                 coos = 35
-            if Game in [-13]:
-                coos = 35
+
 
             if d > D:  # 'плохиши' появляются только в темноте, чтоб игрок их не видел
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
-                        if Game in [-13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                        if Game in [-13,
+                                    -3.1, -5.1, -7.1]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
                             E.append(Enemy("Призрак", x, y))
                             Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
                         if T in ['Вода']:
-                            if Game in [-13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                            if Game in [-13,
+                                        -4.1, -6.1, -7.1]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
                                 E.append(Enemy("Амфибия", x, y))
                                 Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
                         if T in ['Земля']:
-                            if Game in [-13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                            if Game in [-13,
+                                        -5.1, -6.1, -7.1]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
                                 E.append(Enemy("Маг", x, y))
                                 Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
                         if T in ['Земля']:
-                            if Game in [-10, -13]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
+                            if Game in [-10, -13,
+                                        -7.1]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
                                 E.append(Enemy("Рыцарь", x, y))
                                 Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
                         if T in ['Земля']:
-                            if Game in [-1, -3, -5, -8, -13]:  # Холод будет только на первом уровне
+                            if Game in [-1, -3, -5, -8, -13,
+                                        -1.1, -7.1]:  # Холод будет только на первом уровне
                                 E.append(Enemy("Холод", x, y))
                                 Ec.append([x, y])
-                            if Game in [-4, -5, -6]:  # Рыцарь будет только на четвертом уровне
+                            if Game in [-4, -5, -6,
+                                        -3.1, -6.1]:  # Рыцарь будет только на четвертом уровне
                                 E.append(Enemy("Рыцарь", x, y))
                                 Ec.append([x, y])
                             if Game in [-9, -10, -11]: # Маг будет только на девятом уровне
@@ -1429,13 +1542,15 @@ def I(): # сама игра
                             if Game in [-7, -10, -12]:
                                 E.append(Enemy("Амфибия", x, y, hp=225))
                                 Ec.append([x, y])
-                            if Game in [-8, -13]:
+                            if Game in [-8, -13,
+                                        -1.1, -4.1, -7.1]:
                                 E.append(Enemy("Леденящий", x, y, hp=225))
                                 Ec.append([x, y])
                             if Game in [BOSS_LEVEL_2]:  # ключ для нанесения урона боссу (по другому нельзя)
                                 E.append(Enemy('Ключ', x, y))
                                 Ec.append([x, y])
-                        if Game in [-2, -3, -6, -11]:
+                        if Game in [-2, -3, -6, -11,
+                                    -2.1]:
                             E.append(Enemy("Призрак", x, y, hp=225))
                             Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
@@ -1617,7 +1732,7 @@ def I(): # сама игра
                 if T == 'Снег':
                     Type[i] = 'Земля'
 
-            if Game <= -8:
+            if Game <= -8 or '.1' in str(Game):
                 if Temp[i] < -45:
                     if T == 'Лед':
                         Temp[i] = -45
@@ -1808,6 +1923,60 @@ def G():
 
     BB = 0
 
+
+def G_inf():
+    global All_Objects, Mx, My, B, Game, INF, Objects, TIME_START_GAME, hp, Energy, sp, Nx, Ny, BB, KILL_KNIGHT
+
+    HIDE = False
+
+    for i in INF:
+        i.Click(Mx, My, B)
+        i.Open(Mx, My)
+
+        if i.On:
+            if 'Уровень' in i.name:
+                Game = -int(i.name.split('-')[1]) - 0.1 # -1.1; -2.1; -3.1; -4.1; -5.1; -6.1; -7.1
+                HIDE = True
+                # Запускаем музыку игры при выборе уровня
+                play_game_music()
+            if 'Назад' in i.name:
+                Game = 0
+                HIDE = True
+                # Возвращаем музыку меню при возврате
+                play_menu_music()
+
+    for i in INF:
+        if HIDE:
+            i.Hide()
+            i.Restart()
+
+    if Game == 0:
+        canvas.itemconfig(Rectangles, state='hidden')
+        canvas.config(bg='#000000')
+        for i in All_Objects:
+            if HIDE:
+                i.Restart()
+                i.Show()
+    else:
+        TIME_START_GAME = t.time()
+        Nx = 15
+        Ny = 15
+        Gnrt()
+        if Game < 0: # 1й уровень - борьба только с морозом; 2й уровень - борьба с призраками
+            Objects[X * Y + 18].Show()
+            canvas.itemconfig(Rectangles, state='hidden')
+            canvas.config(bg='#000000')
+            hp = 10
+            Energy = 250
+            sp = 25
+            KILL_KNIGHT = 0
+
+            for i in Objects:
+                if HIDE:
+                    canvas.itemconfig(i, state='normal')
+
+    BB = 0
+
 Speed = 100
 
 def A():
@@ -1824,12 +1993,14 @@ def A():
         M()
     if Game == 1:
         G()
+    if Game == 2:
+        G_inf()
 
     canvas.after(Speed, A)
 
 
 def M():
-    global All_Objects, Mx, My, B, Game, lvls
+    global All_Objects, Mx, My, B, Game, lvls, INF
 
     HIDE = False
 
@@ -1844,9 +2015,15 @@ def M():
                 # Запускаем музыку при переходе в меню уровней
                 play_menu_music()
 
+            if i.name == 'Inf':
+                Game = 2
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
     if Game == 1:
         canvas.config(bg='#001000')
-        canvas.itemconfig(Rectangles, state='normal')
+        canvas.itemconfig(Rectangles, state='normal', fill='#005522', outline='#00ffaa')
         for i in All_Objects:
             if HIDE:
                 i.Hide()
@@ -1855,6 +2032,20 @@ def M():
             if HIDE:
                 i.Show()
                 i.Restart()
+
+    if Game == 2: # 2 - бесконечная игра
+        canvas.config(bg='#220022')
+        canvas.itemconfig(Rectangles, state='normal', fill='#330020', outline='#ff00dd')
+        for i in All_Objects:
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        for i in INF:
+            if HIDE:
+                i.Show()
+                i.Restart()
+
 
 
 # Запускаем начальную музыку при старте программы
