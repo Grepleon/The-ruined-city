@@ -10,6 +10,7 @@ import math as m
 import pygame
 import threading
 import os
+import json
 
 # Mus_Destroyted_City - файл с музыкой для самой игры
 # mus_menu - тоже музыка в меню
@@ -18,6 +19,17 @@ TIME_START = t.time()
 
 # Инициализация pygame для музыки
 pygame.mixer.init()
+
+# ------------------------------
+# Загрузка данных из файла
+with open("StatisRG.json", "r", encoding="utf-8") as file:
+    loaded_data = json.load(file)
+
+print("Загрузка игры:")
+print(loaded_data)
+
+# Данные игрока
+player_data = loaded_data
 
 
 class MusicPlayer:
@@ -114,7 +126,7 @@ h = 600
 
 root = Tk()
 root.title('Разрушенный город')
-canvas = Canvas(root, width=w, height=h, bg='black')
+canvas = Canvas(root, width=w, height=h, bg='#000000')
 canvas.grid()
 canvas.pack(anchor=CENTER, expand=1)
 
@@ -184,7 +196,7 @@ Levels = [0] * 14
 
 
 class button:
-    def __init__(self, x1, y1, x2, y2, cc, ccf, cct, textt, textf, color='black', name='Начать игру'):
+    def __init__(self, x1, y1, x2, y2, cc, ccf, cct, textt, textf, color='', name='Начать игру', NCC='black'):
         self._x1 = x1
         self._x2 = x2
         self._y1 = y1
@@ -228,6 +240,8 @@ class button:
         self.objectr = self.CreateR()
         self.objectt = self.CreateT()
 
+        self.New_const_color = NCC
+
     def Restart(self):
         self.x1 = self._x1
         self.x2 = self._x2
@@ -248,6 +262,8 @@ class button:
         self.text = self._textt
 
         self.On = False
+
+
 
     def CreateR(self):
         return canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2, fill=self.color, outline=self.const_color,
@@ -285,23 +301,23 @@ class button:
                 self.color = self.const_color_false
                 self.colort = self.const_color_true
                 canvas.itemconfig(self.objectr, fill=self.const_color_false)
-                canvas.itemconfig(self.objectt, fill=self.const_color_true, text=self.textf)
+                canvas.itemconfig(self.objectt, fill=self.colort, text=self.textf)
             else:
                 self.color = self.const_color_false
                 self.colort = self.const_color_true
                 canvas.itemconfig(self.objectr, fill=self.const_color_false)
-                canvas.itemconfig(self.objectt, fill=self.const_color_true, text=self.textt)
+                canvas.itemconfig(self.objectt, fill=self.colort, text=self.textt)
         else:
             if self.On:
                 self.color = self.const_color_true
-                self.colort = self.const_color_false
+                self.colort = self.const_color_false if not self.const_color_false == '' else self.New_const_color
                 canvas.itemconfig(self.objectr, fill=self.const_color_true)
-                canvas.itemconfig(self.objectt, fill=self.const_color_false, text=self.textf)
+                canvas.itemconfig(self.objectt, fill=self.colort, text=self.textf)
             else:
                 self.color = self.const_color_true
-                self.colort = self.const_color_false
+                self.colort = self.const_color_false if not self.const_color_false == '' else self.New_const_color
                 canvas.itemconfig(self.objectr, fill=self.const_color_true)
-                canvas.itemconfig(self.objectt, fill=self.const_color_false, text=self.textt)
+                canvas.itemconfig(self.objectt, fill=self.colort, text=self.textt)
 
 class Enemy:
     def __init__(self, T, x, y, hp=15, t ='0'):
@@ -470,22 +486,54 @@ class Enemy:
             self.y = (self.y + 1) % Y
         elif (dy < 0 and self.t in ['1', '2']) or (dy < -1 and self.t in ['3', '4']):
             self.y = (self.y - 1) % Y
+k = 5
+A_c = C_C.CCh_list_h('#000000', '#005000', h // k)
 
-
+main_menu_fill = []
+for i in range(h // k):
+    main_menu_fill.append(canvas.create_oval(-100 * k, i * k, w + 100 * k, i * k + k, fill=A_c[i], outline=A_c[i]))
 Rectangles = canvas.create_rectangle(0, 200, w, 400, fill='#005522', outline='#00ffaa', state='hidden')
 
+h2 = 190 # 230 - большие кнопки, 190 - норм, 130 - маленькие, 285 - на весь экран
 
 def S1():
     B1 = []
-    B1.append(button(10, 10, 310, 160,
-                     'green', 'black', '#006611',
+    B1.append(button(10, 10, w * 2 / 5 - 5, h2 + 10,
+                     'green', '', '#006611',
                      'Начать игру', 'Покинуть игру',
-                     name='Начать игру'))
+                     name='Начать игру', NCC='#00ffaa'))
 
-    B1.append(button(320, 10, 620, 160,
-                     'green', 'black', '#006611',
+    B1.append(button(w * 2 / 5 + 5, 20 + h2, w * 4 / 5 - 5, h2 * 2 + 10 * 2,
+                     'green', '', '#006611',
                      'Бесконечный режим', 'Покинуть игру',
-                     name='Inf'))
+                     name='Inf', NCC='#00ffaa'))
+
+    B1.append(button(w / 5 * 4 + 5, 10, w - 10, h2 * 2 + 20,
+                     'green', '', '#006611',
+                     'Статистика', 'Покинуть игру',
+                     name='St', NCC='#00ffaa'))
+
+    B1.append(button(w * 3 / 5 + 5, 10, w * 4 / 5 - 5, h2 * 1 + 10,
+                     'green', '', '#006611',
+                     'Достижения', 'Покинуть игру',
+                     name='Ach', NCC='#00ffaa'))
+
+    B1.append(button(w * 2 / 5 + 5, 10, w * 3 / 5 - 5, h2 * 1 + 10,
+                     'green', '', '#006611',
+                     'Настройки', 'Покинуть игру',
+                     name='Set', NCC='#00ffaa'))
+
+    B1.append(button(w * 1 / 5 + 5, h2 + 20, w * 2 / 5 - 5, h2 * 2 + 20,
+                     'green', '', '#006611',
+                     'Помощь', 'Покинуть игру',
+                     name='Help', NCC='#00ffaa'))
+
+    B1.append(button(10, h2 + 20, w * 1 / 5 - 5, h2 * 2 + 20,
+                     'green', '', '#006611',
+                     'Сетевая игра', 'Покинуть игру',
+                     name='Multiplayer', NCC='#00ffaa'))
+
+
 
     return B1
 
@@ -502,8 +550,8 @@ def S2():
         'Орден рыцарей',          # 4
         'Цитадель льда',          # 5
         'Великий гигант',         # 6
-        'Лед в воде',          # 7         Использовал   (ALT 255) чтобы не было \n, а как бы пробел
-        'Амфотер- ная тварь',  # 8
+        'Амфотер- ная тварь',  # 7         Использовал   (ALT 255) чтобы не было \n, а как бы пробел
+        'Лед в воде',          # 8
         'Башня забвения',         # 9
         'Союзное братство',       # 10
         'Магичес- кий ужас',   # 11
@@ -521,7 +569,7 @@ def S2():
         )
 
     B2.append(button(w - 10, 10, w - 180, 90,
-                     'red', 'black', 'red',
+                     '#00ffaa', '#005522', '#00ffaa',
                      f'Назад', 'Покинуть игру',
                      name=f'Назад'))
 
@@ -613,7 +661,7 @@ def S4():
         )
 
     B2.append(button(w - 10, 10, w - 180, 90,
-                     'red', 'black', 'red',
+                     '#ff00ee', '#330020', '#ee00dd',
                      f'Назад', 'Покинуть игру',
                      name=f'Назад'))
 
@@ -626,6 +674,104 @@ def S4():
 lvls = S2()
 
 INF = S4()
+
+def S5():
+    B2 = []
+    B2.append(
+        button(
+            w - 10, h - 10, w - 180, h - 90,
+            '#ffee00', '#887700', '#ffee00',
+            f'Назад', 'Покинуть игру',
+            name=f'Назад'
+        )
+    )
+    B2.append(
+        button(
+        20, 20, w // 3 - 5, 120,
+        '#ffee00', '#887700', '#ffee00',
+        f'Всего проведено в игре: {player_data["time"]}\n(на момент запуска игры)',
+            'Выведено на экран',
+        name=f'print'
+        )
+    )
+
+    B2.append(
+        button(
+            20, 130, w // 3 - 5, 230,
+            '#ffee00', '#887700', '#ffee00',
+            f'Всего раз игра была открыта: {player_data["opens"]}\n(на момент запуска игры)',
+            'Выведено на экран',
+            name=f'print'
+        )
+    )
+
+    B2.append(
+        button(
+            20, 240, w // 3 - 5, 340,
+            '#ffee00', '#887700', '#ffee00',
+            f'Всего активировано ключей: {player_data["kills_units"]["Ключ"]}\n(на момент запуска игры)',
+            'Выведено на экран',
+            name=f'print'
+        )
+    )
+
+    B2.append(
+        button(
+            w // 3 + 5, 20, w * 2 // 3 - 5, 120,
+            '#ffee00', '#887700', '#ffee00',
+            f'Всего было убито различных врагов: {player_data["kills"]}\n(на момент запуска игры)',
+            'Выведено на экран',
+            name=f'print'
+        )
+    )
+
+    B2.append(
+        button(
+            w // 3 + 5, 130, w * 2 // 3 - 5, 130 + 100 * 2 + 10,
+            '#ffee00', '#887700', '#ffee00',
+            f'''Детально сколько было убито различных врагов:\n(на момент запуска игры)\n
+Мега-Рыцарь: {player_data["kills_units"]["Мега-Рыцарь"]},
+Гидра: {player_data["kills_units"]["Гидра"]},
+Некромант: {player_data["kills_units"]["Некромант"]},
+Холод: {player_data["kills_units"]["Холод"]},
+Леденящий: {player_data["kills_units"]["Леденящий"]},
+Амфибия: {player_data["kills_units"]["Амфибия"]},
+Рыцарь: {player_data["kills_units"]["Рыцарь"]},
+Маг: {player_data["kills_units"]["Маг"]},
+Призрак: {player_data["kills_units"]["Призрак"]}''',
+            'Выведено на экран',
+            name=f'print'
+        )
+    )
+
+    B2.append(
+        button(
+            w  * 2 // 3 + 5, 20, w * 3 // 3 - 5, 130 + 100 * 1 + 0,
+            '#ffee00', '#887700', '#ffee00',
+            f'''Сколько раз были пройдены все уровни:\n(на момент запуска игры)\n
+{''.join([str(i) + 'й. ' + str(player_data["levels"][str(i)]) + f' раз;{' ' if int(i) % 6 != 0 else '\n'}' for i in player_data["levels"]])}''',
+            'Выведено на экран',
+            name=f'print'
+        )
+    )
+
+    B2.append(
+        button(
+            w * 2 // 3 + 5, 130 + 100 * 1 + 10, w * 3 // 3 - 5, 130 + 100 * 1 + 10 + 130 + 100 * 1,
+            '#ffee00', '#887700', '#ffee00',
+            f'''Какой рекорд в каждой бесконечной игре:\n(на момент запуска игры)\n
+{''.join([str(int(float(i))) + 'й. ' + str(int(float(player_data["records"][str(i)]))) + f' сек;{' ' if int(float(i)) % 4 != 0 else '\n'}' for i in player_data["records"]])}''',
+            'Выведено на экран',
+            name=f'print'
+        )
+    )
+
+    for i in B2:
+        i.Hide()
+
+    return B2
+
+St = S5()
 
 Nx, Ny = 15, 15 # Координаты игрока
 
@@ -794,13 +940,20 @@ N = 0
 MOVE_WATER_LEVEL = [-8, -12, -12.5, -13,
                     -1.1, -4.1, -7.1]
 PHASE_BOSS_2 = 0
+YES = True
 
 def I(): # сама игра
     """Сама игра, здесь будут происходить основные игровые битвы и обработки...."""
     global Nx, Ny, Game, X, Y, Mx, My, B, Objects, E, Ec, TIME_START_GAME, hp, sp, Energy,\
         Ending, Sword, BB, ATTACK, ATTACK_P, LIST_ATTACK, TO_ATTACK_SWORD, N, KILL_KNIGHT,\
-        HP_BOSS, X_BOSS, Y_BOSS, PHASE_BOSS, PHASE_BOSS_2
+        HP_BOSS, X_BOSS, Y_BOSS, PHASE_BOSS, PHASE_BOSS_2, YES
     N += 1
+
+    if '.1' in str(Game):
+        if t.time() - TIME_START_GAME > player_data["records"][str(abs(Game))]:
+            player_data["records"][str(abs(Game))] = t.time() - TIME_START_GAME
+
+
 
     BOSS_LEVEL = -6.5 # потом поставить 6.5, 7 - временно для тестов
     BOSS_LEVEL_2 = -12.5
@@ -940,8 +1093,8 @@ def I(): # сама игра
         for i in END:
             canvas.itemconfig(i, state='normal')
         canvas.itemconfig(END[1], text='Вы погибли...\nНажмите пробел чтобы выйти в главное меню')
-        canvas.itemconfig(Rectangles, state='normal')
         if keys_pressed[' ']:
+            canvas.itemconfig(Rectangles, state='normal')
             play_menu_music()
             if not '.1' in str(Game):
                 Game = 1
@@ -951,7 +1104,7 @@ def I(): # сама игра
                     Objects[X * Y + 18].Hide()
 
                     i.Restart()
-                canvas.config(bg='#001000')
+                canvas.config(bg='#003322')
                 for i in Objects:
                     canvas.itemconfig(i, state='hidden')
                 for i in END:
@@ -990,10 +1143,27 @@ def I(): # сама игра
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL_FINAL) \
             :
 
+        if '.5' in str(Game):
+            if YES:
+                if Game == -6.5:
+                    player_data["kills_units"]["Мега-Рыцарь"] += 1
+                    player_data["kills"] += 1
+                if Game == -12.5:
+                    player_data["kills_units"]["Гидра"] += 1
+                    player_data["kills"] += 1
+                if Game == -14.5:
+                    player_data["kills_units"]["Некромант"] += 1
+                    player_data["kills"] += 1
+
         for i in END:
             canvas.itemconfig(i, state='normal')
         canvas.itemconfig(END[1], text='Вы победили!\n\nНажмите пробел чтобы выйти в главное меню')
+        if YES:
+            player_data["levels"][str(abs(Game if not '.5' in str(Game) else int(Game)))] += 1
+            YES = not YES
+
         if keys_pressed[' ']:
+            YES = True
             play_menu_music()
             if not '.1' in str(Game):
                 Game = 1
@@ -1003,7 +1173,7 @@ def I(): # сама игра
                     i.Show()
                     i.Restart()
                 canvas.itemconfig(Rectangles, state='normal')
-                canvas.config(bg='#001000')
+                canvas.config(bg='#003322')
                 for i in Objects:
                     canvas.itemconfig(i, state='hidden')
                 for i in END:
@@ -1048,7 +1218,7 @@ def I(): # сама игра
                             i.Show()
                             i.Restart()
                         canvas.itemconfig(Rectangles, state='normal')
-                        canvas.config(bg='#001000')
+                        canvas.config(bg='#003322')
                         for i in Objects:
                             canvas.itemconfig(i, state='hidden')
                         for i in END:
@@ -1572,11 +1742,11 @@ def I(): # сама игра
             for e in E:
                 if e.T == 'Ключ':
                     if [Nx, Ny] == [e.x, e.y]:
+                        player_data["kills_units"][e.T] += 1
                         E.remove(e)
                         Ec.remove([e.x, e.y])
                         KEY_X = Nx
                         KEY_Y = Ny
-
 
                 if e.T == 'Холод':
                     if IF(e.x, e.y, x, y):
@@ -1585,6 +1755,8 @@ def I(): # сама игра
                         if Temp[i] >= 25:
                             if Game in [-5]:
                                 KILL_KNIGHT += 1
+                            player_data["kills_units"][e.T] += 1
+                            player_data["kills"] += 1
                             E.remove(e)
                             Ec.remove([e.x, e.y])
 
@@ -1595,8 +1767,12 @@ def I(): # сама игра
                         if Temp[i] >= 25:
                             if Game in [-8]:
                                 KILL_KNIGHT += 1
+                            player_data["kills_units"][e.T] += 1
+                            player_data["kills"] += 1
                             E.remove(e)
                             Ec.remove([e.x, e.y])
+
+                            player_data["kills"] += 1
 
                 # В функции I(), в части обработки атаки рыцаря:
 
@@ -1620,6 +1796,8 @@ def I(): # сама игра
                     if TO_ATTACK_SWORD is not None and (e.x, e.y) in TO_ATTACK_SWORD and ATTACK:
                         if Game in [-12]:
                             KILL_KNIGHT += 1
+                        player_data["kills_units"][e.T] += 1
+                        player_data["kills"] += 1
                         if e in E:
                             E.remove(e)
                         if [e.x, e.y] in Ec:
@@ -1637,6 +1815,8 @@ def I(): # сама игра
                     if TO_ATTACK_SWORD is not None and (e.x, e.y) in TO_ATTACK_SWORD and ATTACK:
                         if Game in [-4, -6]:
                             KILL_KNIGHT += 1
+                        player_data["kills_units"][e.T] += 1
+                        player_data["kills"] += 1
                         if e in E:
                             E.remove(e)
                         if [e.x, e.y] in Ec:
@@ -1654,6 +1834,8 @@ def I(): # сама игра
                     if TO_ATTACK_SWORD is not None and (e.x, e.y) in TO_ATTACK_SWORD and ATTACK:
                         if Game in [-9]:
                             KILL_KNIGHT += 1
+                        player_data["kills_units"][e.T] += 1
+                        player_data["kills"] += 1
                         if e in E:
                             E.remove(e)
                         if [e.x, e.y] in Ec:
@@ -1715,6 +1897,8 @@ def I(): # сама игра
                 if e.hp <= 0:
                     if e.T == 'Рыцарь' and Game in [-4, -6]:
                         KILL_KNIGHT += 1
+                    player_data["kills_units"][e.T] += 1
+                    player_data["kills"] += 1
                     E.remove(e)
                     Ec.remove([e.x, e.y])
 
@@ -1899,6 +2083,8 @@ def G():
     if Game == 0:
         canvas.itemconfig(Rectangles, state='hidden')
         canvas.config(bg='#000000')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='normal')
         for i in All_Objects:
             if HIDE:
                 i.Restart()
@@ -1953,6 +2139,8 @@ def G_inf():
     if Game == 0:
         canvas.itemconfig(Rectangles, state='hidden')
         canvas.config(bg='#000000')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='normal')
         for i in All_Objects:
             if HIDE:
                 i.Restart()
@@ -1995,20 +2183,58 @@ def A():
         G()
     if Game == 2:
         G_inf()
+    if Game == 3:
+        St_i()
 
     canvas.after(Speed, A)
 
-
-def M():
+def St_i():
     global All_Objects, Mx, My, B, Game, lvls, INF
 
     HIDE = False
 
-    for i in All_Objects:
+    for i in St:
         i.Click(Mx, My, B)
         i.Open(Mx, My)
 
         if i.On:
+            if i.name == 'Назад':
+                Game = 0
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'print':
+                print(i.textt)
+                i.On = False
+
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        if Game == 0:
+            canvas.itemconfig(Rectangles, state='hidden')
+            canvas.config(bg='#000000')
+            for i in St:
+                i.Hide()
+                i.Restart()
+            for i in main_menu_fill:
+                canvas.itemconfig(i, state='normal')
+            for i in All_Objects:
+                if HIDE:
+                    i.Restart()
+                    i.Show()
+
+def M():
+    global All_Objects, Mx, My, B, Game, lvls, INF, BB
+
+    HIDE = False
+    for i in All_Objects:
+        i.Click(Mx, My, BB)
+        i.Open(Mx, My)
+
+        if i.On:
+            B = 0
             if i.name == 'Начать игру':
                 Game = 1
                 HIDE = True
@@ -2021,13 +2247,23 @@ def M():
                 # Запускаем музыку при переходе в меню уровней
                 play_menu_music()
 
+            if i.name == 'St':
+                Game = 3
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
     if Game == 1:
-        canvas.config(bg='#001000')
+        canvas.config(bg='#003322')
         canvas.itemconfig(Rectangles, state='normal', fill='#005522', outline='#00ffaa')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='hidden')
+
         for i in All_Objects:
             if HIDE:
                 i.Hide()
                 i.Restart()
+
         for i in lvls:
             if HIDE:
                 i.Show()
@@ -2036,6 +2272,9 @@ def M():
     if Game == 2: # 2 - бесконечная игра
         canvas.config(bg='#220022')
         canvas.itemconfig(Rectangles, state='normal', fill='#330020', outline='#ff00dd')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='hidden')
+
         for i in All_Objects:
             if HIDE:
                 i.Hide()
@@ -2046,7 +2285,23 @@ def M():
                 i.Show()
                 i.Restart()
 
+    if Game == 3: # 3 - статистика
+        canvas.config(bg='#887700')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='hidden')
 
+        for i in All_Objects:
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        for i in St:
+            if HIDE:
+                i.Show()
+                i.Restart()
+    BB = 0
+
+BB = 0
 
 # Запускаем начальную музыку при старте программы
 def on_program_start():
@@ -2091,15 +2346,13 @@ root.mainloop()
 on_program_start()
 
 TIME_END = t.time()
-try:
-    with open('StatisRG.txt', 'r') as f:
-        line = f.readline().strip()
-        if line:
-            file_value = float(line)  # используем float вместо int
-        else:
-            file_value = 0.0
-except (FileNotFoundError, ValueError):
-    file_value = 0.0
 
-with open('StatisRG.txt', 'w') as f:
-    f.write(str(file_value + TIME_END - TIME_START))
+player_data["time"] += TIME_END - TIME_START
+player_data["opens"] += 1
+
+print(player_data)
+# Сохраняем данные в файл
+with open("StatisRG.json", "w", encoding="utf-8") as file:
+    json.dump(player_data, file, ensure_ascii=False, indent=4)
+
+print("Игра сохранена!")
