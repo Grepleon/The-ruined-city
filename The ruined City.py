@@ -331,6 +331,84 @@ class Enemy:
 
         self.Hod = True
 
+    def Points2(self, x, y):
+        global Type
+
+        if self.T == 'Амфибия':
+            if Type[x * Y + y] == 'Вода':
+                return 1
+            else:
+                return 2
+        if self.T == 'Призрак':
+            return 1
+        if self.T == 'Рыцарь':
+            return 1
+        if self.T == 'Маг':
+            return 1
+
+    def search(self, Gx, Gy, water=False, earth=True):
+        global Type, X, Y
+        Types = []
+        Points = []
+        lens = []
+        Paths = []
+        for i in range(X):
+            Points.append(['-'] * Y)
+            lens.append([0] * Y)
+            Paths.append([[] for _ in range(Y)])  # Правильная инициализация Paths
+
+        for x in range(X):
+            Types.append([])
+            for y in range(Y):
+                Types[x].append(Type[x * Y + y])
+        U = True
+
+        x = self.x
+        y = self.y
+
+        while U:
+            d = [(0, 1), (1, 0), (-1, 0), (0,
+                                           -1)]  # было так: решил что чуть оптимизирую[(-1, 0), (-1, -1), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+            Points[x][y] = 'x'
+            for D in d:
+                dx = D[0]
+                dy = D[1]
+
+                Nx = (x + dx) % X
+                Ny = (y + dy) % Y
+
+                if Types[Nx][Ny] != ('Вода' if water else '') and Types[Nx][Ny] != ('Земля' if  earth else '') and Points[Nx][Ny] not in ['x']:
+                    #           ^^^^^^^^^^
+                    # ранее здесь было != 'Вода' решил убрать чтоб кое-что посмотреть
+                    Points[Nx][Ny] = lens[x][y] + self.Points2(Nx, Ny) + 1.5 * (min(abs(Gx - Nx), X - abs(Gx - Nx)) + min(abs(Gy - Ny), Y - abs(Gy - Ny)))  # добавил умножение чтоб работало быстрее взамен на точночть
+                    #                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    #                            Сколько прошли                                                         Эвристика
+                    Paths[Nx][Ny] = Paths[x][y] + [(Nx, Ny)]
+                    lens[Nx][Ny] = lens[x][y] + self.Points2(Nx, Ny)
+
+                    if (Nx, Ny) == (Gx, Gy):
+                        return Paths[Nx][Ny]
+
+            min_cost = float('inf')
+            next_x = -1
+            next_y = -1
+            for i in range(X):
+                for j in range(Y):
+                    # Проверяем, что это число (не 'x' и не '-')
+                    if (Points[i][j] != 'x' and
+                            Points[i][j] != '-'):
+
+                        if Points[i][j] < min_cost:
+                            min_cost = Points[i][j]
+                            next_x = i
+                            next_y = j
+            if next_x == -1 and next_y == -1:
+                U = False
+            else:
+                x = next_x
+                y = next_y
+        return []  # Путь не найден
     def Move_Everywhere(self, Nx, Ny):
         global X, Y
         x = self.x
@@ -357,109 +435,23 @@ class Enemy:
         elif dy < 0:
             self.y = (self.y - 1) % Y
 
+    def Move_Everywhere_but_water_better(self, Gx, Gy):
+        Path = self.search(Gx, Gy, False, False)
+        if not Path == []:
+            self.x = Path[0][0]
+            self.y = Path[0][1]
+
     def Move_To_Player_No_Water(self, Nx, Ny):
-        global X, Y, Type
-        T = Type
-
-        # Проверяем, не стоит ли ИИ уже рядом с игроком
-        if abs(self.x - Nx) <= 1 and abs(self.y - Ny) <= 1:
-            return
-
-        # Получаем текущую позицию
-        current_x, current_y = self.x, self.y
-
-        # Проверяем доступные направления движения (без воды)
-        possible_moves = []
-
-        # Проверяем все 4 направления
-        directions = [
-            (1, 0),  # вправо
-            (-1, 0),  # влево
-            (0, 1),  # вниз
-            (0, -1)  # вверх
-        ]
-
-        for dx, dy in directions:
-            new_x = (current_x + dx) % X
-            new_y = (current_y + dy) % Y
-
-            # Проверяем, что клетка не вода
-            tile_type = T[new_x * Y + new_y]
-            if tile_type != "Вода":
-                # Вычисляем расстояние до игрока от новой позиции
-                dist_x = min(abs(new_x - Nx), X - abs(new_x - Nx))
-                dist_y = min(abs(new_y - Ny), Y - abs(new_y - Ny))
-                distance = dist_x + dist_y
-
-                possible_moves.append((distance, new_x, new_y))
-
-        # Если есть доступные ходы, выбираем тот, что приближает к игроку
-        if possible_moves:
-            # Сортируем по расстоянию (чем меньше расстояние, тем лучше)
-            possible_moves.sort(key=lambda x: x[0])
-
-            # Берём лучший ход (с наименьшим расстоянием)
-            best_distance, best_x, best_y = possible_moves[0]
-
-            # Если лучший ход действительно приближает к игроку, двигаемся
-            current_dist_x = min(abs(current_x - Nx), X - abs(current_x - Nx))
-            current_dist_y = min(abs(current_y - Ny), Y - abs(current_y - Ny))
-            current_distance = current_dist_x + current_dist_y
-
-            if best_distance < current_distance:
-                self.x, self.y = best_x, best_y
+        Path = self.search(Nx, Ny, True, False)
+        if not Path == []:
+            self.x = Path[0][0]
+            self.y = Path[0][1]
 
     def Move_To_Player_To_Water(self, Nx, Ny):
-        global X, Y, Type
-        T = Type
-
-        # Проверяем, не стоит ли ИИ уже рядом с игроком
-        if abs(self.x - Nx) <= 1 and abs(self.y - Ny) <= 1:
-            return
-
-        # Получаем текущую позицию
-        current_x, current_y = self.x, self.y
-
-        # Проверяем доступные направления движения (без воды)
-        possible_moves = []
-
-        # Проверяем все 4 направления
-        directions = [
-            (1, 0),  # вправо
-            (-1, 0),  # влево
-            (0, 1),  # вниз
-            (0, -1)  # вверх
-        ]
-
-        for dx, dy in directions:
-            new_x = (current_x + dx) % X
-            new_y = (current_y + dy) % Y
-
-            # Проверяем, что клетка не вода
-            tile_type = T[new_x * Y + new_y]
-            if tile_type == "Вода":
-                # Вычисляем расстояние до игрока от новой позиции
-                dist_x = min(abs(new_x - Nx), X - abs(new_x - Nx))
-                dist_y = min(abs(new_y - Ny), Y - abs(new_y - Ny))
-                distance = dist_x + dist_y
-
-                possible_moves.append((distance, new_x, new_y))
-
-        # Если есть доступные ходы, выбираем тот, что приближает к игроку
-        if possible_moves:
-            # Сортируем по расстоянию (чем меньше расстояние, тем лучше)
-            possible_moves.sort(key=lambda x: x[0])
-
-            # Берём лучший ход (с наименьшим расстоянием)
-            best_distance, best_x, best_y = possible_moves[0]
-
-            # Если лучший ход действительно приближает к игроку, двигаемся
-            current_dist_x = min(abs(current_x - Nx), X - abs(current_x - Nx))
-            current_dist_y = min(abs(current_y - Ny), Y - abs(current_y - Ny))
-            current_distance = current_dist_x + current_dist_y
-
-            if best_distance < current_distance:
-                self.x, self.y = best_x, best_y
+        Path = self.search(Nx, Ny, False, True)
+        if not Path == []:
+            self.x = Path[0][0]
+            self.y = Path[0][1]
 
     def Move_BOSS(self, Nx, Ny):
         global X, Y
@@ -689,7 +681,7 @@ def S5():
         button(
         20, 20, w // 3 - 5, 120,
         '#ffee00', '#887700', '#ffee00',
-        f'Всего проведено в игре: {player_data["time"]}\n(на момент запуска игры)',
+        f'Всего проведено в игре: {int(player_data["time"])} сек.; {int(player_data["time"] / 3600)} часов\n(на момент запуска игры)',
             'Выведено на экран',
         name=f'print'
         )
@@ -772,6 +764,57 @@ def S5():
     return B2
 
 St = S5()
+
+U = {
+        "Первый успех": "Пройти первый уровень",
+        "Великая жатва": "Убить 100 врагов",
+        "Смерть гиганта": "Убить Мега-Рыцаря",
+        "Долгий путь": "Пройти первые 10 уровней",
+        "Леденящий ужас": "Убить 1000 врагов",
+        "Долина смерти": "Убить 10000 врагов",
+        "Бессмертие": "Прожить на хоть на каком-то\nбесконечной игра, как минимум 200 секунд",
+        "Смерть гидры": "Убить Гидру",
+        "Смерть некроманта": "Убить Некроманта",
+        "Укротитель титанов": "Убить суммарно, как минимум 5 боссов",
+        "Теперь можно и отдохнуть": "Пройти все уровни",
+        "Непоколебимый": "Суммарно на всех бесконечных играх\nпрожить как минимум 1000 секунд",
+    }
+
+def S6():
+    B2 = []
+    B2.append(
+        button(
+            w - 10, h - 10, w - 180, h - 90,
+            '#50eeff', '#0d98ba', '#50eeff',
+            f'Назад', 'Покинуть игру',
+            name=f'Назад'
+        )
+    )
+    n = -1
+    n2 = 0
+    for i in player_data['achievement']:
+        name = i
+        u = player_data['achievement'][i]
+        n += 1
+        if n == 5:
+            n = 0
+            n2 += 1
+        B2.append(
+            button(
+            20 + n2 * w // 3 + 5, 20 + n * 110, w // 3 - 5 + w // 3 * n2, 20 + n * 110 + 100,
+            '#50eeff', '#0d98ba', '#50eeff',
+            f'Достижение: "{name}" - {'выполнено' if u else 'не выполнено'}\nусловие:"{U[name]}"\n\n(на момент запуска игры)',
+                'Выведено на экран',
+            name=f'print'
+            )
+        )
+
+    for i in B2:
+        i.Hide()
+
+    return B2
+
+Ach = S6()
 
 Nx, Ny = 15, 15 # Координаты игрока
 
@@ -1783,7 +1826,7 @@ def I(): # сама игра
                         if N % 2 == 0:
                             if e.Hod:
                                 x2, y2 = e.x, e.y
-                                e.Move_Everywhere(Nx, Ny)
+                                e.Move_Everywhere_but_water_better(Nx, Ny)
                                 Ec[Ec.index([x2, y2])] = [e.x, e.y]
                                 e.Hod = not e.Hod
 
@@ -2062,11 +2105,16 @@ def G():
     for i in lvls:
         i.Click(Mx, My, B)
         i.Open(Mx, My)
+        if player_data['levels'][(lambda x: x[len(x) - 1] if len(x) == 2 else "1")(i.name.split('-'))] > 0 and 'Уровень' in i.name:
+            i.color = '#005533'
+            i.const_color_true = '#00eeaa'
+            i.const_color_false = '#005533'
 
         if i.On:
             if 'Уровень' in i.name:
                 Game = -int(i.name.split('-')[1])
                 HIDE = True
+
                 # Запускаем музыку игры при выборе уровня
                 play_game_music()
             if 'Назад' in i.name:
@@ -2185,6 +2233,8 @@ def A():
         G_inf()
     if Game == 3:
         St_i()
+    if Game == 4:
+        Ach_i()
 
     canvas.after(Speed, A)
 
@@ -2225,6 +2275,86 @@ def St_i():
                     i.Restart()
                     i.Show()
 
+def Ach_i():
+    global All_Objects, Mx, My, B, Game, lvls, Ach, player_data
+
+    HIDE = False
+
+    if player_data["levels"]["1"] >= 1:
+        player_data["achievement"]["Первый успех"] = True
+    if player_data["kills"] >= 100:
+        player_data["achievement"]["Великая жатва"] = True
+    if player_data["levels"]["6"] >= 1:
+        player_data["achievement"]["Смерть гиганта"] = True
+    if [player_data["levels"][f"{i}"] for i in range(1, 10 + 1)].count("0") <= 0:
+        player_data["achievement"]["Долгий путь"] = True
+    if player_data["kills"] >= 1000:
+        player_data["achievement"]["Леденящий ужас"] = True
+    if player_data["kills"] >= 10000:
+        player_data["achievement"]["Долина смерти"] = True
+    Sum = 0
+    for i in player_data["records"]:
+        if player_data["records"][i] >= 200:
+            player_data["achievement"]["Бессмертие"] = True
+        Sum += player_data["records"][i]
+    if player_data["levels"]["12"] >= 1:
+        player_data["achievement"]["Смерть гидры"] = True
+    if player_data["levels"]["14"] >= 1:
+        player_data["achievement"]["Смерть некроманта"] = True
+    if player_data["levels"]["6"] + player_data["levels"]["12"] + player_data["levels"]["14"] >= 5:
+        player_data["achievement"]["Укротитель титанов"] = True
+    Only = True
+    for i in player_data["levels"]:
+        if player_data["levels"][i] == 0:
+            Only = False
+    if Only:
+        player_data["achievement"]["Теперь можно и отдохнуть"] = True
+    if Sum >= 1000:
+        player_data["achievement"]["Непоколебимый"] = True
+
+    for i in Ach:
+        i.Click(Mx, My, B)
+        i.Open(Mx, My)
+
+        for i2 in player_data["achievement"]:
+            if i.name == 'print':
+                if i2 in i.textt:
+                    i.textt = f'''Достижение: "{i2}" - {"выполнено" if player_data["achievement"][i2] else "не выполнено"}\nусловие:"{U[i2]}"'''
+                    if not player_data["achievement"][i2]:
+                        i.const_color_false = '#0d88aa' #'#3377aa'
+                        i.const_color_true = '#343163'
+                        i.const_color = '#140033'
+                    else:
+                        i.Restart()
+
+        if i.On:
+            if i.name == 'Назад':
+                Game = 0
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'print':
+                print(i.textt)
+                i.On = False
+
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        if Game == 0:
+            canvas.itemconfig(Rectangles, state='hidden')
+            canvas.config(bg='#000000')
+            for i in Ach:
+                i.Hide()
+                i.Restart()
+            for i in main_menu_fill:
+                canvas.itemconfig(i, state='normal')
+            for i in All_Objects:
+                if HIDE:
+                    i.Restart()
+                    i.Show()
+
 def M():
     global All_Objects, Mx, My, B, Game, lvls, INF, BB
 
@@ -2249,6 +2379,12 @@ def M():
 
             if i.name == 'St':
                 Game = 3
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'Ach':
+                Game = 4
                 HIDE = True
                 # Запускаем музыку при переходе в меню уровней
                 play_menu_music()
@@ -2299,6 +2435,22 @@ def M():
             if HIDE:
                 i.Show()
                 i.Restart()
+
+    if Game == 4: # 4 - достижения
+        canvas.config(bg='#0d98ba')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='hidden')
+
+        for i in All_Objects:
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        for i in Ach:
+            if HIDE:
+                i.Show()
+                i.Restart()
+
     BB = 0
 
 BB = 0
