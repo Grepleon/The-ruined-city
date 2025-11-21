@@ -40,24 +40,27 @@ class MusicPlayer:
 
     def play_music_loop(self, music_file):
         """Бесконечно воспроизводит музыку, перезапуская когда она заканчивается"""
-        try:
-            self.is_playing = True
-            self.current_track = music_file
+        if player_data["settings"]["music"]:
+            try:
+                self.is_playing = True
+                self.current_track = music_file
+                if player_data["settings"]["music"]:
+                    while self.is_playing:
+                        if player_data["settings"]["music"]:
+                            pygame.mixer.music.load(music_file)
+                            pygame.mixer.music.play()
 
-            while self.is_playing:
-                pygame.mixer.music.load(music_file)
-                pygame.mixer.music.play()
-                print(f"Играет музыка: {os.path.basename(music_file)}")
+                            # Ждем пока музыка не закончится
+                            while self.is_playing and pygame.mixer.music.get_busy():
+                                t.sleep(0.1)
+                        else:
+                            return 'выход'
 
-                # Ждем пока музыка не закончится
-                while self.is_playing and pygame.mixer.music.get_busy():
-                    t.sleep(0.1)
+                    #if self.is_playing:
+                    #    print("Музыка закончилась, перезапуск...")
 
-                if self.is_playing:
-                    print("Музыка закончилась, перезапуск...")
-
-        except Exception as e:
-            print(f"Ошибка воспроизведения музыки: {e}")
+            except Exception as e:
+                print(f"Ошибка воспроизведения музыки: {e}")
 
     def start_music(self, music_file):
         """Запускает музыку в отдельном потоке"""
@@ -75,7 +78,6 @@ class MusicPlayer:
         self.is_playing = False
         if pygame.mixer.music.get_busy():
             pygame.mixer.music.stop()
-        print("Музыка остановлена")
 
 def play_menu_music():
     """Запускает музыку для меню"""
@@ -112,10 +114,10 @@ B = 0
 
 # Словарь для отслеживания состояния клавиш
 keys_pressed = {
-    'w': False, 'ц': False,  # Вверх
-    's': False, 'ы': False,  # Вниз
-    'a': False, 'ф': False,  # Влево
-    'd': False, 'в': False,   # Вправо
+    'w': False, # Вверх
+    's': False, # Вниз
+    'a': False, # Влево
+    'd': False,  # Вправо
     ' ': False, # зажечь спичку
     'e': False, # включить фонарик
     'f': False, # ускоренный режим
@@ -130,25 +132,26 @@ canvas = Canvas(root, width=w, height=h, bg='#000000')
 canvas.grid()
 canvas.pack(anchor=CENTER, expand=1)
 
+KEY = ''
 
 def on_key_press(event):
     """Обработчик нажатия клавиш"""
+    global KEY
     key = event.char.lower()
-    if key in keys_pressed:
-        keys_pressed[key] = True
-    elif event.keysym == 'space':
-        keys_pressed[' '] = True
-    elif event.keysym == 'Shift_L':
-        keys_pressed['e'] = True
-
+    KEY = event.keysym.lower()
+    for i in keys_pressed:
+        if event.keysym.lower() == player_data["settings"]["Management"][i]:
+            keys_pressed[i] = True
 
 def on_key_release(event):
     """Обработчик отпускания клавиш"""
+    global KEY
     key = event.char.lower()
-    if key in keys_pressed:
-        keys_pressed[key] = False
-    elif event.keysym == 'Shift_L':
-        keys_pressed['e'] = False
+    KEY = ''
+    for i in keys_pressed:
+        if event.keysym.lower() == player_data["settings"]["Management"][i]:
+            keys_pressed[i] = False
+
 
 
 root.bind('<KeyPress>', on_key_press)
@@ -763,6 +766,8 @@ def S5():
 
     return B2
 
+
+
 St = S5()
 
 U = {
@@ -803,7 +808,7 @@ def S6():
             button(
             20 + n2 * w // 3 + 5, 20 + n * 110, w // 3 - 5 + w // 3 * n2, 20 + n * 110 + 100,
             '#50eeff', '#0d98ba', '#50eeff',
-            f'Достижение: "{name}" - {'выполнено' if u else 'не выполнено'}\nусловие:"{U[name]}"\n\n(на момент запуска игры)',
+            f'Достижение: "{name}" - {'выполнено' if u else 'не выполнено'}\nусловие:"{U[name]}"',
                 'Выведено на экран',
             name=f'print'
             )
@@ -815,6 +820,76 @@ def S6():
     return B2
 
 Ach = S6()
+
+Name_control = [
+    "Осветить",
+    "Поджечь",
+    "Идти вверх",
+    "Идти влево",
+    "Идти вниз",
+    "Идти вправо",
+    "Ускориться"
+]
+
+def S7():
+    B2 = []
+    B2.append(
+        button(
+            w - 10, h - 10, w - 180, h - 90,
+            '#8a7f8e', '#564e59', '#8a7f8e',
+            f'Назад', 'Покинуть игру',
+            name=f'Назад'
+        )
+    )
+
+    B2.append(
+        button(
+            10, 10, w // 3 - 5, 90,
+            '#8a7f8e', '#564e59', '#8a7f8e',
+            f'Музыка: {'включена' if player_data["settings"]["music"] else 'не включена'}', 'Покинуть игру',
+            name=f'.music'
+        )
+    )
+
+    B2.append(
+        button(
+            10, 100, w // 3 - 5, 180,
+            '#8a7f8e', '#564e59', '#8a7f8e',
+            f'Скорость: {player_data["settings"]["speed"]} мс на кадр\nFPS: {1000 // player_data["settings"]["speed"]}', 'Покинуть игру',
+            name=f'.speed'
+        )
+    )
+
+    B2.append(
+        button(
+            10, 190, w // 3 - 5, 270,
+            '#8a7f8e', '#564e59', '#8a7f8e',
+            f'Сложность: {player_data["settings"]["difficulty"]}',
+            'Покинуть игру',
+            name=f'.difficulty'
+        )
+    )
+
+    n = 0
+    for i in player_data["settings"]["Management"]:
+        n += 1
+        B2.append(
+            button(
+                w // 3 + 5, 10 - 45 + 45 * n, w * 2 // 3 - 5, 45 * n + 0,
+                '#8a7f8e', '#564e59', '#8a7f8e',
+                f'{Name_control[n-1]}: {player_data["settings"]["Management"][i]}',
+                'Покинуть игру',
+                name=f'.m:{i}'
+            )
+        )
+
+
+    for i in B2:
+        i.Hide()
+
+    return B2
+
+Set = S7()
 
 Nx, Ny = 15, 15 # Координаты игрока
 
@@ -1473,16 +1548,16 @@ def I(): # сама игра
 
     # Движение игрока с учетом всех нажатых клавиш
     if not ATTACK:
-        if keys_pressed['w'] or keys_pressed['ц']:  # Вверх
+        if keys_pressed['w']:  # Вверх
             if (not ((Type[(Nx * X + Ny - 1) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny - 1) % (X * Y)]) == 'Вода'))):
                 Ny -= 1
-        if keys_pressed['s'] or keys_pressed['ы']:  # Вниз
+        if keys_pressed['s']:  # Вниз
             if (not ((Type[(Nx * X + Ny + 1) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny + 1) % (X * Y)]) == 'Вода'))):
                 Ny += 1
-        if keys_pressed['d'] or keys_pressed['в']:  # Вправо
+        if keys_pressed['d']:  # Вправо
             if (not ((Type[(Nx * X + Ny + X) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny + X) % (X * Y)]) == 'Вода'))):
                 Nx += 1
-        if keys_pressed['a'] or keys_pressed['ф']:  # Влево
+        if keys_pressed['a']:  # Влево
             if (not ((Type[(Nx * X + Ny - X) % (X * Y)]) == 'Вода') and Game not in [-8]) or (Game in MOVE_WATER_LEVEL and (N % 2 == 0 or not ((Type[(Nx * X + Ny - X) % (X * Y)]) == 'Вода'))):
                 Nx -= 1
 
@@ -1706,7 +1781,14 @@ def I(): # сама игра
 
             if Game in [-10, -13,
                         -7.1]:
-                coos = 35
+               coos += 10
+
+            if player_data["settings"]["difficulty"] == "Сложная":
+                coos += 0 # по усолчанию игра сложная
+            elif player_data["settings"]["difficulty"] == "Средняя":
+                coos += 10
+            else:
+                coos += 20 # Легкая сложность
 
 
             if d > D:  # 'плохиши' появляются только в темноте, чтоб игрок их не видел
@@ -2213,15 +2295,15 @@ def G_inf():
 
     BB = 0
 
-Speed = 100
+Speed = player_data["settings"]["speed"]
 
 def A():
-    global Game, Speed, keys_pressed
+    global Game, Speed, keys_pressed, player_data
 
     if keys_pressed['f']:
-        Speed = 50
+        Speed = player_data["settings"]["speed"] // 2
     else:
-        Speed = 100
+        Speed = player_data["settings"]["speed"]
 
     if Game < 0:
         I()
@@ -2235,6 +2317,8 @@ def A():
         St_i()
     if Game == 4:
         Ach_i()
+    if Game == 5:
+        Set_i()
 
     canvas.after(Speed, A)
 
@@ -2274,6 +2358,94 @@ def St_i():
                 if HIDE:
                     i.Restart()
                     i.Show()
+
+N_ = 0
+
+def Set_i():
+    global All_Objects, Mx, My, B, Game, lvls, INF, Set, Speed, N_, BB
+    N_ += 1
+
+    HIDE = False
+
+    for i in Set:
+        i.Click(Mx, My, BB)
+        i.Open(Mx, My)
+        if i.name == '.speed':
+            i.textt = f'Скорость: {player_data["settings"]["speed"]} мс на кадр\nFPS: {1000 // player_data["settings"]["speed"]}'
+            i.textf = i.textt
+            if i.If_In(Mx, My) and BB == 1: # если есть нажатие
+                if Speed == 100:
+                    player_data["settings"]["speed"] = 50
+                elif Speed == 50:
+                    player_data["settings"]["speed"] = 20
+                elif Speed == 20:
+                    player_data["settings"]["speed"] = 200
+                else:
+                    player_data["settings"]["speed"] = 100
+                Speed = player_data["settings"]["speed"]
+
+        if i.name == '.music':
+            i.textt = f'Музыка: {'включена' if player_data["settings"]["music"] else 'не включена'}'
+            i.textf = i.textt
+            if i.If_In(Mx, My) and BB == 1:  # если есть нажатие
+                player_data["settings"]["music"] = not player_data["settings"]["music"]
+                if player_data["settings"]["music"]:
+                    play_menu_music()
+                else:
+                    music_player.stop_music()
+        n = 0
+        for i2 in player_data["settings"]["Management"]:
+            n += 1
+            if f".m:{i2}" == i.name:
+                i.textt = str(Name_control[n - 1]) + ': ' + str(player_data["settings"]["Management"][i2])
+                i.textf = i.textt
+
+                if KEY != '' and i.If_In(Mx, My):
+                    player_data["settings"]["Management"][i2] = KEY
+
+
+        if i.name == '.difficulty':
+            i.textt = f'Сложность: {player_data["settings"]["difficulty"]}'
+            i.textf = i.textt
+            if i.If_In(Mx, My) and BB == 1:  # если есть нажатие
+                if player_data["settings"]["difficulty"] == "Сложная":
+                    player_data["settings"]["difficulty"] = "Средняя"
+                elif player_data["settings"]["difficulty"] == "Средняя":
+                    player_data["settings"]["difficulty"] = "Легкая"
+                else:
+                    player_data["settings"]["difficulty"] = "Сложная"
+
+
+        if i.On:
+            if i.name == 'Назад':
+                Game = 0
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'print':
+                print(i.textt)
+                i.On = False
+
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        if Game == 0:
+            canvas.itemconfig(Rectangles, state='hidden')
+            canvas.config(bg='#000000')
+            for i in Set:
+                i.Hide()
+                i.Restart()
+            for i in main_menu_fill:
+                canvas.itemconfig(i, state='normal')
+            for i in All_Objects:
+                if HIDE:
+                    i.Restart()
+                    i.Show()
+
+    BB = 0
+
 
 def Ach_i():
     global All_Objects, Mx, My, B, Game, lvls, Ach, player_data
@@ -2322,7 +2494,7 @@ def Ach_i():
                     i.textt = f'''Достижение: "{i2}" - {"выполнено" if player_data["achievement"][i2] else "не выполнено"}\nусловие:"{U[i2]}"'''
                     if not player_data["achievement"][i2]:
                         i.const_color_false = '#0d88aa' #'#3377aa'
-                        i.const_color_true = '#343163'
+                        #i.const_color_true = '#343163'
                         i.const_color = '#140033'
                     else:
                         i.Restart()
@@ -2356,7 +2528,7 @@ def Ach_i():
                     i.Show()
 
 def M():
-    global All_Objects, Mx, My, B, Game, lvls, INF, BB
+    global All_Objects, Mx, My, B, Game, lvls, INF, BB, Set
 
     HIDE = False
     for i in All_Objects:
@@ -2385,6 +2557,12 @@ def M():
 
             if i.name == 'Ach':
                 Game = 4
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'Set':
+                Game = 5
                 HIDE = True
                 # Запускаем музыку при переходе в меню уровней
                 play_menu_music()
@@ -2436,8 +2614,8 @@ def M():
                 i.Show()
                 i.Restart()
 
-    if Game == 4: # 4 - достижения
-        canvas.config(bg='#0d98ba')
+    if Game == 4:  # 4 - достижения
+        canvas.config(bg='#0d88aa')  # 0d98ba
         for i in main_menu_fill:
             canvas.itemconfig(i, state='hidden')
 
@@ -2447,6 +2625,21 @@ def M():
                 i.Restart()
 
         for i in Ach:
+            if HIDE:
+                i.Show()
+                i.Restart()
+
+    if Game == 5: # 5 - настройки
+        canvas.config(bg='#564e59')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='hidden')
+
+        for i in All_Objects:
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        for i in Set:
             if HIDE:
                 i.Show()
                 i.Restart()
