@@ -266,7 +266,12 @@ class button:
 
         self.On = False
 
+    def Go_y(self, y):
+        canvas.move(self.objectr, 0, y)
+        canvas.move(self.objectt, 0, y)
 
+        self.y1 += y
+        self.y2 += y
 
     def CreateR(self):
         return canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2, fill=self.color, outline=self.const_color,
@@ -297,6 +302,12 @@ class button:
             self.Show()
         else:
             self.Hide()
+
+    def UnColor(self):
+        self.color = self.const_color_false
+        self.colort = self.const_color_true
+        canvas.itemconfig(self.objectr, fill=self.const_color_false)
+        canvas.itemconfig(self.objectt, fill=self.colort, text=self.textt)
 
     def Open(self, x, y):
         if not self.If_In(x, y):
@@ -891,6 +902,182 @@ def S7():
 
 Set = S7()
 
+def S8():
+
+    ALL_TEXT = [
+        [
+            """Разрушенный город - это игра с элементами стелса
+и исследованием процедурно генерируемого мира."""
+        ],
+
+        [
+            """Игрок перемещается по клеточной карте с эффектом \"зацикленного\" мира.
+Перемещение осуществляется клавишами WASD.
+В некоторых режимах доступно движение
+по воде с пониженной скоростью.""",
+
+         """Игрок имеет ограниченную область обзора вокруг себя. 
+Для расширения видимости можно использовать
+фонарик - постоянный источник света, расходующий энергию
+Для использование нажмите \"e\"
+(или другая назначенная клавиша)"""
+        ],
+
+         [
+             """Каждая клетка мира имеет температуру. При низких температурах:
+Вода превращается в лед
+Земля покрывается снегом
+Игрок теряет здоровье при нахождении на холодных поверхностях""",
+
+            """При зажигании спичек (для использования пробел,
+если не назначена другая клавиша) близлижайшие клетки становятся
+теплее. Лед и снег тают."""
+         ],
+
+        [
+            """Реализована механика атаки мечом с вращением.
+Игрок может атаковать в направлении курсора мыши,
+(сама атака начинается за 90° до курсора), 
+поражая все клетки на пути меча.
+Для атаки нажмите ЛКМ.""",
+
+            """Режимы игры
+Сюжетные уровни - 14 уникальных миссий с различными целями
+Бесконечный режим - 7 вариантов выживания с нарастающей сложностью
+Сетевой режим - мультиплеер для 2х игроков по локальной сети"""
+         ],
+
+        ["Существует 9 различных врагов (из которых 3 босса) и 1 предмет (ключ)"],
+
+        [
+            """Холод
+Элементальный враг, понижающий температуру окружающих клеток. 
+Уязвим к повышенным температурам. Не умеет двигаться.
+Появляется только на земле.""",
+
+            """Леденящий
+Враг, вида подобный холоду, единственное отличие заключается в том,
+что может появиться только на воде"""
+        ],
+
+        [
+            """Рыцарь
+Бронированный воин, преследующий игрока по кратчайшему пути.
+Может быть убит мечом. Не может перемещаться по водным
+поверхностям. Ходит раз в два такта. В случае, если
+игрок слишком близок к рыцарю, то тот бьет игрока.
+Может появиться только на воде""",
+
+            """Амфибия
+Водное существо, способное перемещаться по суше и воде.
+Нможет появиться только на воде. Двигается раз в два такта по суше,
+раз в такт по воде (по воде вдвое быстрее). В остальном аналогичен рыцарю"""
+        ],
+
+        [
+            """Маг
+Дальнобойный противник, заряжающий магические атаки, 
+представляющие из себя постепенно увеличивающийся круг,
+попадая туда игрок, получает урон. Может появиться только на суше.
+Может ходить только по воде. Может быть убит мечом.""",
+
+            """Призрак
+Призрачное существо, способное проходить где угодно.
+Наносит урон при близком нахождении к игроку.
+Боится включенного света (фонарика). Может появиться где угодно."""
+        ],
+
+        [
+            """Мега-Рыцарь (Босс на 6ом уровне)
+Огромный рыцарь, состоящий из четырех частей.
+Может "затаптывать" водные клетки, превращая их в землю.
+Иногда по его осям активируется атака, наносящая огромный
+урон. Может получить урон только от ключа.""",
+
+            """Гидра (Босс на 12ом уровне)
+Аналогичен Мега-Рыцарю, однако она превращает землю в воду,
+а не наоборот. По аналогии может получить урон только от ключа."""
+         ],
+
+        [
+            """Некромант (Босс на 14ом уровне)
+Мощный маг, способный к телепортации. Может наносить урон,
+также как и Мега-Рыцарь. Может появиться только на земле.
+Телепортация возможна только на землю. Может получать урон,
+только от ударов меча.""",
+
+            """Ключ (предмет)
+Специальный объект, необходимый для нанесения
+урона боссам. Активируется только:
+на 6ом уровне, только на земле; на 12ом уровне, только на воде,
+Наносит урон боссам только, если совпадают их оси."""
+        ]
+    ]
+
+
+    B2 = [
+
+    ]
+
+    dx = 120
+
+    a2 = 20
+
+    n2 = -1
+    for i2 in ALL_TEXT:
+        n2 += 1
+        n = -1
+        for i in i2:
+            n += 1
+            l = len(i2)
+
+            B2.append(
+                button(
+                    w / l * n + a2, a2 + n2 * dx, w / l * (n + 1) - a2, dx * n2 + dx,
+                    'green', 'black', 'green',
+                    i, 'Выведено в терминал',
+                    name=f'print'
+                )
+            )
+
+
+    B2.append(
+        button(
+            w - 10, h - 10, w - 190, h - 100,
+            'green', '#001100', 'green',
+            f'Назад', 'Покинуть игру',
+            name=f'Назад'
+        )
+    )
+    B2.append(
+        button(
+            10, h - 10, 140, h - 100,
+            'green', '#001100', 'green',
+            f'Далее\n(вниз)', 'Далее\n(вниз)',
+            name=f'Вниз'
+        )
+    )
+    B2.append(
+        button(
+            10, h - 120, 140, h - 210,
+            'green', '#001100', 'green',
+            f'Обратно\n(наверх)', 'Обратно\n(наверх)',
+            name=f'Вверх'
+        )
+    )
+
+
+
+
+    for i in B2:
+        i.Hide()
+        if i.name == 'print':
+            i.Go_y(5)
+
+    return B2
+
+Help = S8()
+
 Nx, Ny = 15, 15 # Координаты игрока
 
 Type = [] # название объектов
@@ -1063,12 +1250,11 @@ YES = True
 def I(): # сама игра
     """Сама игра, здесь будут происходить основные игровые битвы и обработки...."""
     global Nx, Ny, Game, X, Y, Mx, My, B, Objects, E, Ec, TIME_START_GAME, hp, sp, Energy,\
-        Ending, Sword, BB, ATTACK, ATTACK_P, LIST_ATTACK, TO_ATTACK_SWORD, N, KILL_KNIGHT,\
+        Ending, Sword, BB, ATTACK, ATTACK_P, LIST_ATTACK, TO_ATTACK_SWORD,N, KILL_KNIGHT,\
         HP_BOSS, X_BOSS, Y_BOSS, PHASE_BOSS, PHASE_BOSS_2, YES
-    N += 1
 
     if '.1' in str(Game):
-        if t.time() - TIME_START_GAME > player_data["records"][str(abs(Game))]:
+        if N / 10 > player_data["records"][str(abs(Game))]:
             player_data["records"][str(abs(Game))] = t.time() - TIME_START_GAME
 
 
@@ -1245,19 +1431,19 @@ def I(): # сама игра
 
         return 'Выход из ф-я'
 
-    if         (t.time() - TIME_START_GAME >= 120 and Game == -1) \
-            or (t.time() - TIME_START_GAME >= 150 and Game == -2) \
-            or (t.time() - TIME_START_GAME >= 180 and Game == -3) \
+    if         (N % 10 >= 120 and Game == -1) \
+            or (N % 10 >= 150 and Game == -2) \
+            or (N % 10 >= 180 and Game == -3) \
             or (KILL_KNIGHT >= 10 and Game == -4) \
             or (KILL_KNIGHT >= 10 and Game == -5) \
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL) \
-            or (t.time() - TIME_START_GAME >= 140 and Game == -7) \
-            or (t.time() - TIME_START_GAME >= 150 and Game == -8) \
+            or (N % 10 >= 140 and Game == -7) \
+            or (N % 10 >= 150 and Game == -8) \
             or (KILL_KNIGHT >= 10 and Game == -9) \
-            or (t.time() - TIME_START_GAME >= 100 and Game == -10) \
-            or (t.time() - TIME_START_GAME >= 180 and Game == -11) \
+            or (N % 10 >= 100 and Game == -10) \
+            or (N % 10 >= 180 and Game == -11) \
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL_2) \
-            or (t.time() - TIME_START_GAME >= 160 and Game == -13) \
+            or (N % 10 >= 160 and Game == -13) \
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL_FINAL) \
             :
 
@@ -1627,7 +1813,7 @@ def I(): # сама игра
                               center_x + line_data[2],
                               center_y + line_data[3])
     if not '.1' in str(Game):
-        canvas.itemconfig(Objects[X * Y + 1], text=f'Время:\n{int(t.time() - TIME_START_GAME)}/{120 if Game == -1 else
+        canvas.itemconfig(Objects[X * Y + 1], text=f'Время:\n{int(N / 10)}/{120 if Game == -1 else
     150 if Game == -2 else 140 if Game in [-7] else 150 if Game in [-8] else 100 if Game in [-10] else 160 if Game in [-13] else 180} сек.'
     if Game not in [-4, -5, -6, BOSS_LEVEL, -9, BOSS_LEVEL_2, -12, BOSS_LEVEL_FINAL] else f'Убито {"рыцарей" if
     not Game in [-5, -9, -12] else "морозов" if not Game in [-9, -12] else "магов" if not Game in [-12] else "амфибий"}:\n{KILL_KNIGHT}/{10 if not Game in [-6, -12]
@@ -1796,7 +1982,7 @@ def I(): # сама игра
                     if not ([x, y] in Ec):
                         if Game in [-13,
                                     -3.1, -5.1, -7.1]:  # Сделал, чтоб отдельно появлялся от мага, а то они вместе
-                            E.append(Enemy("Призрак", x, y))
+                            E.append(Enemy("Призрак", x, y, hp=300))
                             Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
@@ -1844,9 +2030,12 @@ def I(): # сама игра
                             if Game in [BOSS_LEVEL_2]:  # ключ для нанесения урона боссу (по другому нельзя)
                                 E.append(Enemy('Ключ', x, y))
                                 Ec.append([x, y])
-                        if Game in [-2, -3, -6, -11,
+                        if Game in [-2,
                                     -2.1]:
                             E.append(Enemy("Призрак", x, y, hp=225))
+                            Ec.append([x, y])
+                        if Game in [-3, -6, -11]:
+                            E.append(Enemy("Призрак", x, y, hp=300))
                             Ec.append([x, y])
                 if random.randint(1, X * Y * coos) == 1:
                     if not ([x, y] in Ec):
@@ -2172,7 +2361,7 @@ def I(): # сама игра
                     if Nx == x and Ny == y:
                         hp -= 3.4
 
-
+    N += 1
     BB = 0
 
 Color_0_to_5 = C_C.CCh_list_h('#000000', '#c20000', Repeat=10)
@@ -2319,8 +2508,78 @@ def A():
         Ach_i()
     if Game == 5:
         Set_i()
+    if Game == 6:
+        Help_i()
 
     canvas.after(Speed, A)
+
+def Help_i():
+    global All_Objects, Mx, My, B, Game, lvls, INF, Help, BB
+
+    HIDE = False
+
+    I_if = False
+
+    for i in Help:
+        if i.name != 'print':
+            if i.If_In(Mx, My):
+                I_if = True
+
+
+    for i in Help:
+        if i.name == 'print':
+            i.Click(Mx, My, BB)
+        else:
+            i.Click(Mx, My, B)
+        if i.name == 'print':
+            if not I_if:
+                i.Open(Mx, My)
+            else:
+                i.UnColor()
+        else:
+            i.Open(Mx, My)
+
+        if i.On:
+            if i.name == 'Назад':
+                Game = 0
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'print':
+                print(i.textt)
+                i.On = False
+
+            if i.name == 'Вверх':
+                for i2 in Help:
+                    if i2.name == 'print':
+                        i2.Go_y(25)
+                i.On = False
+
+            if i.name == 'Вниз':
+                for i2 in Help:
+                    if i2.name == 'print':
+                        i2.Go_y(-25)
+                i.On = False
+
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        if Game == 0:
+            canvas.itemconfig(Rectangles, state='hidden')
+            canvas.config(bg='#000000')
+            for i in Help:
+                i.Hide()
+                i.Restart()
+            for i in main_menu_fill:
+                canvas.itemconfig(i, state='normal')
+            for i in All_Objects:
+                if HIDE:
+                    i.Restart()
+                    i.Show()
+
+    BB = 0
 
 def St_i():
     global All_Objects, Mx, My, B, Game, lvls, INF
@@ -2528,7 +2787,7 @@ def Ach_i():
                     i.Show()
 
 def M():
-    global All_Objects, Mx, My, B, Game, lvls, INF, BB, Set
+    global All_Objects, Mx, My, B, Game, lvls, INF, BB, Set, Help
 
     HIDE = False
     for i in All_Objects:
@@ -2563,6 +2822,12 @@ def M():
 
             if i.name == 'Set':
                 Game = 5
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'Help':
+                Game = 6
                 HIDE = True
                 # Запускаем музыку при переходе в меню уровней
                 play_menu_music()
@@ -2629,7 +2894,7 @@ def M():
                 i.Show()
                 i.Restart()
 
-    if Game == 5: # 5 - настройки
+    if Game == 5:  # 5 - настройки
         canvas.config(bg='#564e59')
         for i in main_menu_fill:
             canvas.itemconfig(i, state='hidden')
@@ -2640,6 +2905,21 @@ def M():
                 i.Restart()
 
         for i in Set:
+            if HIDE:
+                i.Show()
+                i.Restart()
+
+    if Game == 6: # 6 - вспомогательная инструкция игроку
+        canvas.config(bg='black')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='hidden')
+
+        for i in All_Objects:
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        for i in Help:
             if HIDE:
                 i.Show()
                 i.Restart()
