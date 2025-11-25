@@ -11,11 +11,16 @@ import pygame
 import threading
 import os
 import json
+import socket
 
 # Mus_Destroyted_City - файл с музыкой для самой игры
 # mus_menu - тоже музыка в меню
 
 TIME_START = t.time()
+
+Player2_x = -1
+Player2_y = -1
+
 
 # Инициализация pygame для музыки
 pygame.mixer.init()
@@ -31,6 +36,7 @@ print(loaded_data)
 # Данные игрока
 player_data = loaded_data
 
+SERVERIUM = 0 # 0 - без серверной игры, 1 - сервер, 2 - клиент
 
 class MusicPlayer:
     def __init__(self):
@@ -133,10 +139,10 @@ canvas.grid()
 canvas.pack(anchor=CENTER, expand=1)
 
 KEY = ''
-
+key = ''
 def on_key_press(event):
     """Обработчик нажатия клавиш"""
-    global KEY
+    global KEY, key
     key = event.char.lower()
     KEY = event.keysym.lower()
     for i in keys_pressed:
@@ -145,8 +151,8 @@ def on_key_press(event):
 
 def on_key_release(event):
     """Обработчик отпускания клавиш"""
-    global KEY
-    key = event.char.lower()
+    global KEY, key
+    key = ''
     KEY = ''
     for i in keys_pressed:
         if event.keysym.lower() == player_data["settings"]["Management"][i]:
@@ -695,7 +701,7 @@ def S5():
         button(
         20, 20, w // 3 - 5, 120,
         '#ffee00', '#887700', '#ffee00',
-        f'Всего проведено в игре: {int(player_data["time"])} сек.; {int(player_data["time"] / 3600)} часов\n(на момент запуска игры)',
+        f'Всего проведено в игре: {int(player_data["time"])} сек.; {int(player_data["time"] / 3600)} часов\n(на момент запуска игры) ',
             'Выведено на экран',
         name=f'print'
         )
@@ -705,7 +711,7 @@ def S5():
         button(
             20, 130, w // 3 - 5, 230,
             '#ffee00', '#887700', '#ffee00',
-            f'Всего раз игра была открыта: {player_data["opens"]}\n(на момент запуска игры)',
+            f'Всего раз игра была открыта: {player_data["opens"]}\n(на момент запуска игры)  ',
             'Выведено на экран',
             name=f'print'
         )
@@ -715,7 +721,7 @@ def S5():
         button(
             20, 240, w // 3 - 5, 340,
             '#ffee00', '#887700', '#ffee00',
-            f'Всего активировано ключей: {player_data["kills_units"]["Ключ"]}\n(на момент запуска игры)',
+            f'Всего активировано ключей: {player_data["kills_units"]["Ключ"]}\n(на момент запуска игры)   ',
             'Выведено на экран',
             name=f'print'
         )
@@ -725,7 +731,7 @@ def S5():
         button(
             w // 3 + 5, 20, w * 2 // 3 - 5, 120,
             '#ffee00', '#887700', '#ffee00',
-            f'Всего было убито различных врагов: {player_data["kills"]}\n(на момент запуска игры)',
+            f'Всего было убито различных врагов: {player_data["kills"]}\n(на момент запуска игры)    ',
             'Выведено на экран',
             name=f'print'
         )
@@ -744,7 +750,7 @@ def S5():
 Амфибия: {player_data["kills_units"]["Амфибия"]},
 Рыцарь: {player_data["kills_units"]["Рыцарь"]},
 Маг: {player_data["kills_units"]["Маг"]},
-Призрак: {player_data["kills_units"]["Призрак"]}''',
+Призрак: {player_data["kills_units"]["Призрак"]}     ''',
             'Выведено на экран',
             name=f'print'
         )
@@ -755,7 +761,7 @@ def S5():
             w  * 2 // 3 + 5, 20, w * 3 // 3 - 5, 130 + 100 * 1 + 0,
             '#ffee00', '#887700', '#ffee00',
             f'''Сколько раз были пройдены все уровни:\n(на момент запуска игры)\n
-{''.join([str(i) + 'й. ' + str(player_data["levels"][str(i)]) + f' раз;{' ' if int(i) % 6 != 0 else '\n'}' for i in player_data["levels"]])}''',
+{''.join([str(i) + 'й. ' + str(player_data["levels"][str(i)]) + f' раз;{' ' if int(i) % 6 != 0 else '\n'}' for i in player_data["levels"]])}      ''',
             'Выведено на экран',
             name=f'print'
         )
@@ -766,7 +772,7 @@ def S5():
             w * 2 // 3 + 5, 130 + 100 * 1 + 10, w * 3 // 3 - 5, 130 + 100 * 1 + 10 + 130 + 100 * 1,
             '#ffee00', '#887700', '#ffee00',
             f'''Какой рекорд в каждой бесконечной игре:\n(на момент запуска игры)\n
-{''.join([str(int(float(i))) + 'й. ' + str(int(float(player_data["records"][str(i)]))) + f' сек;{' ' if int(float(i)) % 4 != 0 else '\n'}' for i in player_data["records"]])}''',
+{''.join([str(int(float(i))) + 'й. ' + str(int(float(player_data["records"][str(i)]))) + f' сек;{' ' if int(float(i)) % 4 != 0 else '\n'}' for i in player_data["records"]])}       ''',
             'Выведено на экран',
             name=f'print'
         )
@@ -1078,6 +1084,43 @@ def S8():
 
 Help = S8()
 
+def S9():
+    B2 = []
+
+    a = 50
+
+    B2.append(button(a * 3, h - 10, w - a * 3, h - 90,
+                     '#4682b4', '#09294a', '#4682b4',
+                     f'Назад', 'Покинуть игру',
+                     name=f'Назад'))
+
+    B2.append(button(a, 10, w - a, 90,
+                     '#4682b4', '#09294a', '#4682b4',
+                     f'Создать сервер', 'Подключиться, как клиент',
+                     name=f'Сервер-клиент'))
+
+    B2.append(button(a, 100, w - a, 180,
+                     '#4682b4', '#09294a', '#4682b4',
+                     f'Введите IP', 'Для подтверждение IP нажмите ЛКМ',
+                     name=f'IP'))
+
+    B2.append(button(a, 190, w - a, 270,
+                     '#4682b4', '#09294a', '#4682b4',
+                     f'Играть в кампании', 'Покинуть игру',
+                     name=f'Кампания'))
+
+    B2.append(button(a, 280, w - a, 360,
+                     '#4682b4', '#09294a', '#4682b4',
+                     f'Играть в бесконечном режиме', 'Покинуть игру',
+                     name=f'Бесконечный режим'))
+
+    for i in B2:
+        i.Hide()
+
+    return B2
+
+Multiplayer = S9()
+
 Nx, Ny = 15, 15 # Координаты игрока
 
 Type = [] # название объектов
@@ -1255,7 +1298,7 @@ def I(): # сама игра
 
     if '.1' in str(Game):
         if N / 10 > player_data["records"][str(abs(Game))]:
-            player_data["records"][str(abs(Game))] = t.time() - TIME_START_GAME
+            player_data["records"][str(abs(Game))] = N / 10
 
 
 
@@ -1550,6 +1593,10 @@ def I(): # сама игра
                                       text='Вы в меню.\nНажмите левый шифт, чтобы вернуться в игру. Нажмите пробел, чтобы выйти в главное меню')
                     i.On = False
             return 'Вообще-то мы в меню'
+        else:
+            if i.name == 'Меню':
+                canvas.itemconfig(END[0], state='hidden')
+                canvas.itemconfig(END[1], state='hidden')
 
     if Game == BOSS_LEVEL:
 
@@ -2369,7 +2416,7 @@ Color_0_to_10_Magic = C_C.CCh_list_h('#000000', '#a800db', Repeat=10)
 Color_0_to_10_Tp = C_C.CCh_list_h('#000000', '#c154c1', Repeat=6)
 
 def G():
-    global All_Objects, Mx, My, B, Game, lvls, Objects, TIME_START_GAME, hp, Energy, sp, Nx, Ny, BB, KILL_KNIGHT
+    global All_Objects, Mx, My, B, Game, lvls, Objects, TIME_START_GAME, hp, Energy, sp, Nx, Ny, BB, KILL_KNIGHT, N
 
     HIDE = False
 
@@ -2389,7 +2436,10 @@ def G():
                 # Запускаем музыку игры при выборе уровня
                 play_game_music()
             if 'Назад' in i.name:
-                Game = 0
+                if SERVERIUM == 0:
+                    Game = 0
+                else:
+                    Game = 7
                 HIDE = True
                 # Возвращаем музыку меню при возврате
                 play_menu_music()
@@ -2408,29 +2458,40 @@ def G():
             if HIDE:
                 i.Restart()
                 i.Show()
+    elif Game == 7:
+        canvas.itemconfig(Rectangles, state='hidden')
+        canvas.config(bg='#09294a')
+        for i in Multiplayer:
+            if HIDE:
+                i.Show()
+                i.Restart()
     else:
-        TIME_START_GAME = t.time()
-        Nx = 15
-        Ny = 15
-        Gnrt()
-        if Game < 0: # 1й уровень - борьба только с морозом; 2й уровень - борьба с призраками
-            Objects[X * Y + 18].Show()
-            canvas.itemconfig(Rectangles, state='hidden')
-            canvas.config(bg='#000000')
-            hp = 10
-            Energy = 250
-            sp = 25
-            KILL_KNIGHT = 0
+        if SERVERIUM != 2:
+            TIME_START_GAME = t.time()
+            N = 0
+            Nx = 15
+            Ny = 15
+            Gnrt()
+            if Game < 0: # 1й уровень - борьба только с морозом; 2й уровень - борьба с призраками
+                Objects[X * Y + 18].Show()
+                canvas.itemconfig(Rectangles, state='hidden')
+                canvas.config(bg='#000000')
+                hp = 10
+                Energy = 250
+                sp = 25
+                KILL_KNIGHT = 0
 
-            for i in Objects:
-                if HIDE:
-                    canvas.itemconfig(i, state='normal')
+                for i in Objects:
+                    if HIDE:
+                        canvas.itemconfig(i, state='normal')
+        else:
+            print('Только сервер может выбирать уровень')
 
     BB = 0
 
 
 def G_inf():
-    global All_Objects, Mx, My, B, Game, INF, Objects, TIME_START_GAME, hp, Energy, sp, Nx, Ny, BB, KILL_KNIGHT
+    global All_Objects, Mx, My, B, Game, INF, Objects, TIME_START_GAME, hp, Energy, sp, Nx, Ny, BB, KILL_KNIGHT, SERVERIUM
 
     HIDE = False
 
@@ -2445,7 +2506,10 @@ def G_inf():
                 # Запускаем музыку игры при выборе уровня
                 play_game_music()
             if 'Назад' in i.name:
-                Game = 0
+                if SERVERIUM == 0:
+                    Game = 0
+                else:
+                    Game = 7
                 HIDE = True
                 # Возвращаем музыку меню при возврате
                 play_menu_music()
@@ -2464,35 +2528,77 @@ def G_inf():
             if HIDE:
                 i.Restart()
                 i.Show()
+    elif Game == 7:
+        canvas.itemconfig(Rectangles, state='hidden')
+        canvas.config(bg='#09294a')
+        for i in Multiplayer:
+            if HIDE:
+                i.Show()
+                i.Restart()
     else:
-        TIME_START_GAME = t.time()
-        Nx = 15
-        Ny = 15
-        Gnrt()
-        if Game < 0: # 1й уровень - борьба только с морозом; 2й уровень - борьба с призраками
-            Objects[X * Y + 18].Show()
-            canvas.itemconfig(Rectangles, state='hidden')
-            canvas.config(bg='#000000')
-            hp = 10
-            Energy = 250
-            sp = 25
-            KILL_KNIGHT = 0
+        if SERVERIUM != 2:
+            TIME_START_GAME = t.time()
+            N = 0
+            Nx = 15
+            Ny = 15
+            Gnrt()
+            if Game < 0: # 1й уровень - борьба только с морозом; 2й уровень - борьба с призраками
+                Objects[X * Y + 18].Show()
+                canvas.itemconfig(Rectangles, state='hidden')
+                canvas.config(bg='#000000')
+                hp = 10
+                Energy = 250
+                sp = 25
+                KILL_KNIGHT = 0
 
-            for i in Objects:
-                if HIDE:
-                    canvas.itemconfig(i, state='normal')
+                for i in Objects:
+                    if HIDE:
+                        canvas.itemconfig(i, state='normal')
+        else:
+            print('Только сервер может выбирать уровень')
 
     BB = 0
 
 Speed = player_data["settings"]["speed"]
+client, addr = '', ''
 
+__N = 0
+SERVER = False
+def Serveriums():
+    global SERVERIUM, Type, Temp, Player2_x, Player2_y, Nx, Ny, Game, __N, SERVER
+    if SERVER:
+        if SERVERIUM == 1:
+            client.send(str(Game).encode())
+
+            if Game < 0:
+                __N += 1
+                if __N % 2 == 1:
+                    client.send(str(Type).encode())
+                else:
+                    Type = client.recv(1024 * 1024).decode().replace("[", '').replace("]", '').replace("'", '').split(", ")
+
+        if SERVERIUM == 2:
+            Game = int(client.recv(1024 * 1024).decode())
+            if Game < 0:
+                __N += 1
+                if __N % 2 == 1:
+                    Type = client.recv(1024 * 1024).decode().replace("[", '').replace("]", '').replace("'", '').split(", ")
+                else:
+                    client.send(str(Type).encode())
+
+
+    canvas.after(100, Serveriums)
+Serveriums()
 def A():
-    global Game, Speed, keys_pressed, player_data
+    global Game, Speed, keys_pressed, player_data, SERVERIUM
 
     if keys_pressed['f']:
         Speed = player_data["settings"]["speed"] // 2
     else:
-        Speed = player_data["settings"]["speed"]
+        if Game != 7:
+            Speed = player_data["settings"]["speed"]
+        else:
+            Speed = player_data["settings"]["speed"] * 5 // 4 # иначе слишком быстро текст вводится
 
     if Game < 0:
         I()
@@ -2510,6 +2616,8 @@ def A():
         Set_i()
     if Game == 6:
         Help_i()
+    if Game == 7:
+        Mltp_i()
 
     canvas.after(Speed, A)
 
@@ -2572,6 +2680,10 @@ def Help_i():
             for i in Help:
                 i.Hide()
                 i.Restart()
+                canvas.coords(i.objectr,
+                              i.x1, i.y1, i.x2, i.y2)
+                canvas.coords(i.objectt,
+                              i.x1 / 2 + i.x2 / 2, i.y1 / 2 + i.y2 / 2)
             for i in main_menu_fill:
                 canvas.itemconfig(i, state='normal')
             for i in All_Objects:
@@ -2581,6 +2693,141 @@ def Help_i():
 
     BB = 0
 
+Input_IP = ''
+New = 0
+def Mltp_i():
+    global All_Objects, Mx, My, B, Game, lvls, INF, Multiplayer, BB, KEY, Input_IP, key, SERVERIUM, New, SERVER
+    HIDE = False
+    IP_PORT = Input_IP # т. к. есть код старый где уже все сделано сдулаю перменные как там чтоб легче было
+    Sete = SERVERIUM - 1 # т. к. есть код старый где уже все сделано сдулаю перменные как там чтоб легче было
+    if New == 2:
+        New = 1
+    if New == 1:
+        New = 2
+
+    for i in Multiplayer:
+        i.Click(Mx, My, BB)
+        i.Open(Mx, My)
+
+        if not i.On:
+            if i.name == 'Сервер-клиент':
+                SERVERIUM = 1  # сервер
+
+            if i.name == 'IP':
+                if Input_IP == '':
+                    i.textt = f"{' ' * 50}Введите IP:PORT\n\nТребуется ввести сначала IP потом через двоеточие, без пробелов порт"
+                else:
+                    i.textt = f"Введите IP:PORT\nВведенный IP:PORT - {Input_IP}"
+        if i.On:
+            if i.name == 'Назад':
+                SERVERIUM = 0
+                Game = 0
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'Сервер-клиент':
+                SERVERIUM = 2  # клиент
+
+            if i.name == 'Кампания':
+                Game = 1
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'Бесконечный режим':
+                Game = 2
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'IP':
+                i.textf = f'Для подтверждение IP:PORT нажмите ЛКМ\nВы ввели: {Input_IP}'
+                if key != '':
+                    Input_IP += key
+                if KEY == 'backspace':
+                    Input_IP=Input_IP[:-2]
+
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        if Game == 0:
+            SERVER = False
+            SERVERIUM = 0
+            Input_IP = ''
+            canvas.itemconfig(Rectangles, state='hidden')
+            canvas.config(bg='#000000')
+            for i in Multiplayer:
+                i.Hide()
+                i.Restart()
+            for i in main_menu_fill:
+                canvas.itemconfig(i, state='normal')
+            for i in All_Objects:
+                if HIDE:
+                    i.Restart()
+                    i.Show()
+
+        if Game in [1, 2]:
+            New = 1
+            global client, addr
+            host = IP_PORT.split(":")[0]
+            port = int(IP_PORT.split(":")[1])
+            n = 0
+            for i in END:
+                n += 1
+                canvas.itemconfig(i, state='normal')
+                if n == 2:
+                    if Sete == 0:
+                        canvas.itemconfig(i, text=f'Сервер запущен на {IP_PORT}. Ожидание клиента...', fill='#4682b4')
+                    else:
+                        canvas.itemconfig(i, text=f'Подключение к серверу {host}:{port}', fill='#4682b4')
+                else:
+                    canvas.itemconfig(i, fill='#09294a', outline='#4682b4')
+            if Sete == 0:
+                server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server.bind((host, port))
+                server.listen(1)  # Ожидаем 1 подключение
+                print(f"Сервер запущен на {IP_PORT}. Ожидание клиента...")
+
+                client, addr = server.accept()
+                print(f"Подключен клиент: {addr}")
+            if Sete == 1:
+                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client.connect((host, port))
+                print(f"Подключено к серверу {host}:{port}")
+            n = 0
+            for i in END:
+                canvas.itemconfig(i, state='hidden')
+            for i in Multiplayer:
+                i.Hide()
+                i.Restart()
+            SERVER = False
+            if Game == 1: # 1 - кампания
+                canvas.config(bg='#003322')
+                canvas.itemconfig(Rectangles, state='normal', fill='#005522', outline='#00ffaa')
+                for i in Multiplayer:
+                    i.Hide()
+                    i.Restart()
+
+                for i in lvls:
+                    if HIDE:
+                        i.Show()
+                        i.Restart()
+
+            if Game == 2:  # 2 - бесконечная игра
+                canvas.config(bg='#220022')
+                canvas.itemconfig(Rectangles, state='normal', fill='#330020', outline='#ff00dd')
+                for i in Multiplayer:
+                    i.Hide()
+                    i.Restart()
+
+                for i in INF:
+                    if HIDE:
+                        i.Show()
+                        i.Restart()
+
+    BB = 0
 def St_i():
     global All_Objects, Mx, My, B, Game, lvls, INF
 
@@ -2589,6 +2836,33 @@ def St_i():
     for i in St:
         i.Click(Mx, My, B)
         i.Open(Mx, My)
+
+        if i.textt.count(' ') == 1:
+            i.textt = f'Всего проведено в игре: {int((player_data["time"] + t.time() - TIME_START))} сек.; {int((player_data["time"] + t.time() - TIME_START) / 3600)} часов '
+        if i.textt.count(' ') == 2:
+            i.textt = f'Всего раз игра была открыта: {player_data["opens"]}  '
+        if i.textt.count(' ') == 3:
+            i.textt = f'Всего активировано ключей: {player_data["kills_units"]["Ключ"]}   '
+        if i.textt.count(' ') == 4:
+            i.textt = f'Всего было убито различных врагов: {player_data["kills"]}    '
+        if i.textt.count(' ') == 5:
+            i.textt = f'''Детально сколько было убито различных врагов:\n
+Мега-Рыцарь: {player_data["kills_units"]["Мега-Рыцарь"]},
+Гидра: {player_data["kills_units"]["Гидра"]},
+Некромант: {player_data["kills_units"]["Некромант"]},
+Холод: {player_data["kills_units"]["Холод"]},
+Леденящий: {player_data["kills_units"]["Леденящий"]},
+Амфибия: {player_data["kills_units"]["Амфибия"]},
+Рыцарь: {player_data["kills_units"]["Рыцарь"]},
+Маг: {player_data["kills_units"]["Маг"]},
+Призрак: {player_data["kills_units"]["Призрак"]}     '''
+        if i.textt.count(' ') == 6:
+            i.textt = f'''Сколько раз были пройдены все уровни:\n
+{''.join([str(i) + 'й. ' + str(player_data["levels"][str(i)]) + f' раз;{' ' if int(i) % 6 != 0 else '\n'}' for i in player_data["levels"]])}      '''
+        if i.textt.count(' ') == 7:
+            i.textt = f'''Какой рекорд в каждой бесконечной игре:\n
+{''.join([str(int(float(i))) + 'й. ' + str(int(float(player_data["records"][str(i)]))) + f' сек;{' ' if int(float(i)) % 4 != 0 else '\n'}' for i in player_data["records"]])}       '''
+
 
         if i.On:
             if i.name == 'Назад':
@@ -2787,7 +3061,7 @@ def Ach_i():
                     i.Show()
 
 def M():
-    global All_Objects, Mx, My, B, Game, lvls, INF, BB, Set, Help
+    global All_Objects, Mx, My, B, Game, lvls, INF, BB, Set, Help, Multiplayer
 
     HIDE = False
     for i in All_Objects:
@@ -2828,6 +3102,12 @@ def M():
 
             if i.name == 'Help':
                 Game = 6
+                HIDE = True
+                # Запускаем музыку при переходе в меню уровней
+                play_menu_music()
+
+            if i.name == 'Multiplayer':
+                Game = 7
                 HIDE = True
                 # Запускаем музыку при переходе в меню уровней
                 play_menu_music()
@@ -2909,7 +3189,7 @@ def M():
                 i.Show()
                 i.Restart()
 
-    if Game == 6: # 6 - вспомогательная инструкция игроку
+    if Game == 6:  # 6 - вспомогательная инструкция игроку
         canvas.config(bg='black')
         for i in main_menu_fill:
             canvas.itemconfig(i, state='hidden')
@@ -2920,6 +3200,21 @@ def M():
                 i.Restart()
 
         for i in Help:
+            if HIDE:
+                i.Show()
+                i.Restart()
+
+    if Game == 7: # 7 - настройка сетевого режима
+        canvas.config(bg='#09294a')
+        for i in main_menu_fill:
+            canvas.itemconfig(i, state='hidden')
+
+        for i in All_Objects:
+            if HIDE:
+                i.Hide()
+                i.Restart()
+
+        for i in Multiplayer:
             if HIDE:
                 i.Show()
                 i.Restart()
@@ -2981,3 +3276,5 @@ with open("StatisRG.json", "w", encoding="utf-8") as file:
     json.dump(player_data, file, ensure_ascii=False, indent=4)
 
 print("Игра сохранена!")
+
+#мой ай пи: 26.34.19.185
