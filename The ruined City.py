@@ -1474,19 +1474,19 @@ def I(): # сама игра
 
         return 'Выход из ф-я'
 
-    if         (N % 10 >= 120 and Game == -1) \
-            or (N % 10 >= 150 and Game == -2) \
-            or (N % 10 >= 180 and Game == -3) \
+    if         (N // 10 >= 120 and Game == -1) \
+            or (N // 10 >= 150 and Game == -2) \
+            or (N // 10 >= 180 and Game == -3) \
             or (KILL_KNIGHT >= 10 and Game == -4) \
             or (KILL_KNIGHT >= 10 and Game == -5) \
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL) \
-            or (N % 10 >= 140 and Game == -7) \
-            or (N % 10 >= 150 and Game == -8) \
+            or (N // 10 >= 140 and Game == -7) \
+            or (N // 10 >= 150 and Game == -8) \
             or (KILL_KNIGHT >= 10 and Game == -9) \
-            or (N % 10 >= 100 and Game == -10) \
-            or (N % 10 >= 180 and Game == -11) \
+            or (N // 10 >= 100 and Game == -10) \
+            or (N // 10 >= 180 and Game == -11) \
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL_2) \
-            or (N % 10 >= 160 and Game == -13) \
+            or (N // 10 >= 160 and Game == -13) \
             or (HP_BOSS <= 0 and Game == BOSS_LEVEL_FINAL) \
             :
 
